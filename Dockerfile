@@ -26,7 +26,11 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Copia CLI do Prisma para poder rodar migrations
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+# Roda migrations e inicia servidor
+CMD ["sh", "-c", "./node_modules/.bin/prisma db push --skip-generate; node server.js"]
