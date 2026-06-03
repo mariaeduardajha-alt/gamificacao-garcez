@@ -1,36 +1,22 @@
-FROM node:20-alpine AS builder
+FROM node:20-alpine
 WORKDIR /app
 
-# Força instalação de devDependencies necessárias para o build
+# Instala todas as dependências (incluindo devDeps para build e seed)
 ENV NODE_ENV=development
-
 COPY package*.json ./
 RUN npm install
 
 COPY . .
-RUN npx prisma generate
-RUN NODE_ENV=production npm run build
 
-# ── Imagem final leve ──
-FROM node:20-alpine AS runner
-WORKDIR /app
+# Gera o Prisma Client e faz o build de produção
+RUN npx prisma generate
+RUN npm run build
 
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Copia o servidor standalone + arquivos estáticos + public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-# Copia CLI do Prisma para poder rodar migrations
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-
 EXPOSE 3000
 
-# Roda migrations e inicia servidor
-CMD ["sh", "-c", "./node_modules/.bin/prisma db push --skip-generate; node server.js"]
+# Roda migrations + seed na inicialização, depois inicia o servidor
+CMD ["sh", "-c", "npx prisma db push --skip-generate && npm run db:seed; node .next/standalone/server.js"]
