@@ -1,5 +1,8 @@
-FROM node:20-alpine
+FROM node:20-slim
 WORKDIR /app
+
+# Instala openssl necessário para o Prisma
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Instala todas as dependências (incluindo devDeps para build e seed)
 ENV NODE_ENV=development
