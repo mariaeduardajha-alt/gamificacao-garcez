@@ -36,7 +36,8 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+# Copia todos os arquivos prisma* do .bin (inclui .wasm e outros necessários)
+COPY --from=builder /app/node_modules/.bin/prisma* ./node_modules/.bin/
 
 # Seed runtime (só bcryptjs)
 COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
