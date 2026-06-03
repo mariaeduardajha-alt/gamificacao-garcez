@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   reactStrictMode: true,
   allowedDevOrigins: ["gamificacaogarcezconsultoria.local", "192.168.10.103"],
   images: {
