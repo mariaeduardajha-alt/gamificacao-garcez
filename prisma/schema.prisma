@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ActivityStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DemandStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ActivityType {
+  CAMINHADA
+  CORRIDA
+  CICLISMO
+  MUSCULACAO
+  FUNCIONAL
+  DANCA
+  NATACAO
+  ESPORTE
+  TREINO_CASA
+  TRILHA
+  OUTRA
+}
+
+enum DemandWeight {
+  SMALL      // 5 pts
+  MEDIUM     // 15 pts
+  LARGE      // 30 pts
+  EPIC       // 50 pts
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String
+  passwordHash String
+  role         Role       @default(USER)
+  avatarUrl    String?
+  sector       String?
+  createdAt    DateTime   @default(now())
+  activities   Activity[]
+  demands      Demand[]
+}
+
+model Activity {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime
+  type        ActivityType
+  kcal        Int
+  durationMin Int?
+  notes       String?
+  proofUrl    String?
+  status      ActivityStatus @default(PENDING)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  reviewNote  String?
+  createdAt   DateTime       @default(now())
+
+  @@index([userId, date])
+  @@index([status])
+}
+
+model Demand {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  client      String?
+  weight      DemandWeight
+  points      Int
+  completedAt DateTime
+  proofUrl    String?
+  notes       String?
+  status      DemandStatus @default(PENDING)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  reviewNote  String?
+  createdAt   DateTime     @default(now())
+
+  @@index([userId, completedAt])
+  @@index([status])
+}
+
+model Challenge {
+  id               String   @id @default(cuid())
+  name             String
+  startDate        DateTime
+  endDate          DateTime
+  bronzeKcal       Int      @default(24000)
+  silverKcal       Int      @default(30000)
+  goldKcal         Int      @default(34000)
+  bronzePoints     Int      @default(300)
+  silverPoints     Int      @default(600)
+  goldPoints       Int      @default(900)
+  bronzeActiveDays Int      @default(48)
+  silverActiveDays Int      @default(72)
+  goldActiveDays   Int      @default(96)
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+}
+
+enum GoalDirection {
+  HIGHER_IS_BETTER
+  LOWER_IS_BETTER
+}
+
+model SectorGoal {
+  id          String        @id
+  area        String
+  responsible String
+  indicator   String
+  current     Float         @default(0)
+  bronze      Float
+  silver      Float
+  gold        Float
+  unit        String        @default("")
+  direction   GoalDirection @default(HIGHER_IS_BETTER)
+  avatarUrl   String?
+  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime      @default(now())
+}

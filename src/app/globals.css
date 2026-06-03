@@ -1,0 +1,198 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes score-popup {
+  0%   { opacity: 0; transform: translateY(20px) scale(0.92); }
+  12%  { opacity: 1; transform: translateY(0)    scale(1);    }
+  78%  { opacity: 1; transform: translateY(0)    scale(1);    }
+  100% { opacity: 0; transform: translateY(-12px) scale(0.96); }
+}
+
+
+:root {
+  --val-red:    #FF4655;
+  --val-cream:  #D4DCF0;
+  --val-bg:     #06091A;
+  --val-panel:  #0D1330;
+  --rpg-purple: #7C4DFF;
+  --rpg-blue:   #3D7FFF;
+  --rpg-gold:   #F0C040;
+}
+
+html, body {
+  background: var(--val-bg);
+  color: var(--val-cream);
+  min-height: 100%;
+}
+
+body {
+  background-color: #06091A;
+  background-image:
+    radial-gradient(ellipse at 15% 0%,  rgba(124, 77,255,0.14), transparent 55%),
+    radial-gradient(ellipse at 85% 5%,  rgba( 61,127,255,0.10), transparent 50%),
+    radial-gradient(ellipse at 50% 100%,rgba( 61,127,255,0.08), transparent 60%),
+    linear-gradient(180deg, #06091A 0%, #03050F 100%);
+  background-attachment: fixed;
+}
+
+/* ─────────────────────────────────────
+   CLIP SHAPES
+───────────────────────────────────── */
+.clip-notch {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+}
+.clip-notch-left {
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
+}
+.clip-notch-both {
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+
+/* ─────────────────────────────────────
+   BASE COMPONENTS
+───────────────────────────────────── */
+@layer components {
+
+  /* Card escuro RPG com borda azul translúcida */
+  .val-card {
+    background: rgba(13, 19, 48, 0.85);
+    border: 1px solid rgba(61, 127, 255, 0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+    padding: 1.5rem;
+  }
+
+  /* Painel lateral translúcido */
+  .rpg-panel {
+    background: rgba(10, 15, 38, 0.90);
+    border: 1px solid rgba(61, 127, 255, 0.14);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 4px;
+  }
+
+  /* Card de setor */
+  .rpg-card {
+    background: rgba(13, 19, 48, 0.80);
+    border: 1px solid rgba(61, 127, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 1.25rem;
+    border-radius: 4px;
+  }
+
+  .val-panel {
+    @apply bg-val-panel/80 border border-rpg-border backdrop-blur-sm;
+  }
+
+  .val-heading {
+    @apply font-display uppercase tracking-wider2 text-val-cream;
+  }
+
+  /* Botão principal — mantém o vermelho para ações */
+  .val-btn {
+    @apply relative inline-flex items-center justify-center px-6 py-3 font-display uppercase tracking-wider2 text-sm
+           bg-val-cream text-val-bg transition-all duration-150 clip-notch
+           hover:bg-val-red hover:text-val-cream disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .val-btn-outline {
+    @apply relative inline-flex items-center justify-center px-6 py-3 font-display uppercase tracking-wider2 text-sm
+           border-2 border-val-cream text-val-cream transition-all duration-150 clip-notch
+           hover:bg-val-red hover:border-val-red;
+  }
+  .val-btn-danger {
+    @apply relative inline-flex items-center justify-center px-6 py-3 font-display uppercase tracking-wider2 text-sm
+           bg-val-red text-val-cream transition-all duration-150 clip-notch
+           hover:bg-val-redDark;
+  }
+
+  .val-input {
+    @apply w-full bg-val-bgDark border border-rpg-border text-val-cream px-4 py-3 font-mono text-sm
+           focus:outline-none focus:border-rpg-blue transition-colors;
+  }
+
+  .val-label {
+    @apply block font-display uppercase tracking-wider2 text-xs text-rpg-textDim mb-2;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar        { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track  { background: var(--val-bg); }
+  ::-webkit-scrollbar-thumb  { background: rgba(61,127,255,0.4); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(124,77,255,0.6); }
+}
+
+/* ─────────────────────────────────────
+   ANIMAÇÕES RPG
+───────────────────────────────────── */
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,70,85,0.7); }
+  50%       { box-shadow: 0 0 0 10px rgba(255,70,85,0); }
+}
+.animate-pulse-red { animation: pulse-red 2s infinite; }
+
+@keyframes glow-gold {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(240,192,48,0.5));  }
+  50%       { filter: drop-shadow(0 0 18px rgba(240,192,48,0.9)); }
+}
+.animate-glow-gold { animation: glow-gold 2.5s ease-in-out infinite; }
+
+@keyframes glow-silver {
+  0%, 100% { filter: drop-shadow(0 0 5px rgba(143,168,200,0.4)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(143,168,200,0.7)); }
+}
+.animate-glow-silver { animation: glow-silver 3s ease-in-out infinite; }
+
+@keyframes glow-bronze {
+  0%, 100% { filter: drop-shadow(0 0 5px rgba(192,112,48,0.4)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(192,112,48,0.7)); }
+}
+.animate-glow-bronze { animation: glow-bronze 3.5s ease-in-out infinite; }
+
+@keyframes pulse-blue {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(61,127,255,0.6); }
+  50%       { box-shadow: 0 0 0 10px rgba(61,127,255,0); }
+}
+.animate-pulse-blue { animation: pulse-blue 2.5s infinite; }
+
+@keyframes float-shield {
+  0%, 100% { transform: translateY(0px);   }
+  50%       { transform: translateY(-6px);  }
+}
+.animate-float { animation: float-shield 4s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* ─────────────────────────────────────
+   UTILITÁRIOS RPG
+───────────────────────────────────── */
+.rpg-glow-gold   { box-shadow: 0 0 20px rgba(240,192,48,0.45), 0 0 60px rgba(240,192,48,0.15); }
+.rpg-glow-silver { box-shadow: 0 0 16px rgba(143,168,200,0.40), 0 0 48px rgba(143,168,200,0.12); }
+.rpg-glow-bronze { box-shadow: 0 0 14px rgba(192,112,48,0.40), 0 0 40px rgba(192,112,48,0.12); }
+.rpg-glow-blue   { box-shadow: 0 0 16px rgba(61,127,255,0.45), 0 0 48px rgba(61,127,255,0.15); }
+
+.rpg-text-glow-gold   { text-shadow: 0 0 10px rgba(240,192,48,0.7), 0 0 24px rgba(240,192,48,0.4); }
+.rpg-text-glow-silver { text-shadow: 0 0 8px  rgba(143,168,200,0.6); }
+.rpg-text-glow-blue   { text-shadow: 0 0 10px rgba(61,127,255,0.7);  }
+
+/* Divisor decorativo */
+.rpg-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(61,127,255,0.4), rgba(124,77,255,0.4), transparent);
+}
+
+/* Badge tier */
+.rpg-badge-gold   { background: rgba(240,192,48,0.12); border: 1px solid rgba(240,192,48,0.35); color: #F0C040; }
+.rpg-badge-silver { background: rgba(143,168,200,0.10); border: 1px solid rgba(143,168,200,0.30); color: #8FA8C8; }
+.rpg-badge-bronze { background: rgba(192,112,48,0.10); border: 1px solid rgba(192,112,48,0.30); color: #C07030; }
+.rpg-badge-blue   { background: rgba(61,127,255,0.10);  border: 1px solid rgba(61,127,255,0.30);  color: #3D7FFF; }
