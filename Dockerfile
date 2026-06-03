@@ -1,7 +1,6 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Instala openssl + devDeps para o build funcionar
 RUN apk add --no-cache openssl
 ENV NODE_ENV=development
 
@@ -11,6 +10,12 @@ RUN npm install
 COPY . .
 RUN npx prisma generate
 RUN NODE_ENV=production npm run build
+
+# Compila seed para JS puro (sem ts-node no runner)
+RUN npx tsc prisma/seed.ts \
+      --module commonjs --target es2017 \
+      --esModuleInterop --resolveJsonModule --skipLibCheck \
+      --outDir /tmp/seed-dist 2>/dev/null || true
 
 # ── Runner leve ──
 FROM node:20-alpine AS runner
@@ -22,26 +27,21 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Standalone server + assets
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 
-# Prisma client + CLI para rodar migrations
+# Prisma runtime
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
-# bcryptjs e ts-node para rodar o seed
+# Seed runtime (só bcryptjs)
 COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
-COPY --from=builder /app/node_modules/ts-node ./node_modules/ts-node
-COPY --from=builder /app/node_modules/typescript ./node_modules/typescript
-COPY --from=builder /app/node_modules/@types ./node_modules/@types
-COPY --from=builder /app/node_modules/tsconfig-paths ./node_modules/tsconfig-paths
+COPY --from=builder /tmp/seed-dist/seed.js ./prisma/seed.js
 
 EXPOSE 3000
 
-# Migrations → seed → servidor
-CMD ["sh", "-c", "./node_modules/.bin/prisma db push --skip-generate; ./node_modules/.bin/ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts 2>/dev/null; node server.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma db push --skip-generate; node prisma/seed.js 2>/dev/null; node server.js"]
