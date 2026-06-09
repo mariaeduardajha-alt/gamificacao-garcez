@@ -13,8 +13,8 @@ export async function getActiveChallenge() {
     challenge = await prisma.challenge.create({
       data: {
         name: "Movimento em Jogo",
-        startDate: new Date("2026-05-01T00:00:00Z"),
-        endDate: new Date("2026-06-30T23:59:59Z"),
+        startDate: new Date("2026-06-08T00:00:00Z"),
+        endDate: new Date("2026-07-08T23:59:59Z"),
         bronzeActiveDays: 48,
         silverActiveDays: 72,
         goldActiveDays: 96,

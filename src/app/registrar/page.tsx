@@ -169,7 +169,7 @@ export default function RegistrarPage() {
                   const d = new Date();
                   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 })()}
-                min="2026-06-01"
+                min="2026-06-08"
                 max={(() => {
                   const d = new Date();
                   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;

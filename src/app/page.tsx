@@ -79,7 +79,7 @@ export default async function HomePage() {
                 Movimento em Jogo
               </h1>
               <p className="font-mono text-rpg-textDim text-xs uppercase tracking-wider2 mt-1">
-                01.JUN.2026 — 28.JUN.2026 · Equipe Garcez · {s.players.length} agentes
+                08.JUN.2026 — 08.JUL.2026 · Equipe Garcez · {s.players.length} agentes
               </p>
             </div>
 
@@ -138,13 +138,13 @@ export default async function HomePage() {
         <section>
           <SectionHeader
             icon="⚔"
-            title="Meta Coletiva — Junho"
+            title="Meta Coletiva"
             subtitle="Trilha coletiva · Dias ativos + bônus de constância"
             color="#7C4DFF"
           />
           <MedalGauge
             title="Escudo da Equipe"
-            subtitle="Movimento em Jogo // Dias ativos + bônus · Jun 2026"
+            subtitle="Movimento em Jogo // Dias ativos + bônus · Jun–Jul 2026"
             value={s.totalCollectiveActiveDays}
             unit="dias ativos"
             bronze={s.challenge.bronzeActiveDays}

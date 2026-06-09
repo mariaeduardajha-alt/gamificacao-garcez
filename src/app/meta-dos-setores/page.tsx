@@ -46,7 +46,7 @@ export default async function MetaDoSetoresPage() {
               Meta dos Setores
             </h1>
             <p className="font-mono text-rpg-textDim text-xs uppercase tracking-wider2 mt-1">
-              Mai–Jun 2026 · Desempenho por área
+              Jun–Jul 2026 · Desempenho por área
             </p>
           </div>
         </section>

@@ -4,12 +4,12 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 const team: { name: string; email: string; role: Role; avatarUrl?: string }[] = [
-  { name: "Luiz Garcez",               email: "luizhenriquegarcez@gmail.com", role: "ADMIN", avatarUrl: "/avatars/luiz.jpg"    },
-  { name: "Douglas",                   email: "douglas@luizgarcez.com.br",    role: "USER",  avatarUrl: "/avatars/douglas.jpg" },
-  { name: "Cleiton",                   email: "cleiton@luizgarcez.com.br",    role: "USER",  avatarUrl: "/avatars/cleiton.jpg" },
-  { name: "Kelly",                     email: "kellyadrsz1@gmail.com",        role: "USER",  avatarUrl: "/avatars/kelly.jpg"   },
-  { name: "Milenna",                   email: "milenna@luizgarcez.com.br",    role: "USER",  avatarUrl: "/avatars/milenna.jpg" },
-  { name: "Maria Eduarda (Estagiária)",email: "garcez@garcez",                role: "USER",  avatarUrl: "/avatars/mariaeduarda.jpg" },
+  { name: "Luiz Garcez", email: "luizhenriquegarcez@gmail.com", role: "USER",  avatarUrl: "/avatars/luiz.jpg"    },
+  { name: "Douglas",     email: "douglas@luizgarcez.com.br",    role: "USER",  avatarUrl: "/avatars/douglas.jpg" },
+  { name: "Cleiton",     email: "cleiton@luizgarcez.com.br",    role: "USER",  avatarUrl: "/avatars/cleiton.jpg" },
+  { name: "Kelly",       email: "kellyadrsz1@gmail.com",        role: "USER",  avatarUrl: "/avatars/kelly.jpg"   },
+  { name: "Milenna",     email: "milenna@luizgarcez.com.br",    role: "USER",  avatarUrl: "/avatars/milenna.jpg" },
+  { name: "Maria Eduarda",email: "garcez@garcez",               role: "ADMIN", avatarUrl: "/avatars/mariaeduarda.jpg" },
 ];
 
 async function main() {
@@ -29,8 +29,8 @@ async function main() {
     create: {
       id: "main",
       name: "Movimento em Jogo",
-      startDate: new Date("2026-06-01T00:00:00Z"),
-      endDate:   new Date("2026-06-28T23:59:59Z"),
+      startDate: new Date("2026-06-08T00:00:00Z"),
+      endDate:   new Date("2026-07-08T23:59:59Z"),
       bronzeKcal:       24000,
       silverKcal:       30000,
       goldKcal:         34000,
@@ -43,6 +43,8 @@ async function main() {
       active: true
     },
     update: {
+      startDate: new Date("2026-06-08T00:00:00Z"),
+      endDate:   new Date("2026-07-08T23:59:59Z"),
       bronzeActiveDays: 48,
       silverActiveDays: 72,
       goldActiveDays:   96,
