@@ -26,6 +26,34 @@ export function medalForTotal(
   return "NONE";
 }
 
+/**
+ * Colocação com empates reais (standard competition ranking, estilo "1-2-2-2-5").
+ *
+ * Regra: mesma pontuação = mesma colocação. A próxima colocação respeita o
+ * número real de participantes acima (pula as posições empatadas).
+ * NÃO usa nome, ID, ordem alfabética ou ordem de cadastro como desempate —
+ * apenas a pontuação define a posição.
+ *
+ * Recebe a lista JÁ ordenada por pontuação decrescente e devolve um array de
+ * colocações alinhado por índice.
+ */
+export function rankWithTies(players: { rankingPoints: number }[]): number[] {
+  const ranks: number[] = [];
+  let currentRank = 1;
+  let previousScore: number | null = null;
+
+  players.forEach((p, idx) => {
+    // Só muda a colocação quando a pontuação realmente cai
+    if (previousScore === null || p.rankingPoints < previousScore) {
+      currentRank = idx + 1;
+    }
+    previousScore = p.rankingPoints;
+    ranks.push(currentRank);
+  });
+
+  return ranks;
+}
+
 // ========== DEMANDAS (ClickUp) ==========
 export const WEIGHT_POINTS: Record<DemandWeight, number> = {
   SMALL: 5,

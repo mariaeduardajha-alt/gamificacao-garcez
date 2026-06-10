@@ -7,7 +7,7 @@ import { MedalGauge } from "@/components/MedalGauge";
 import { PodiumShield } from "@/components/PodiumShield";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Shield } from "@/components/Shield";
-import { medalForTotal, type PlayerStats, type MedalTier } from "@/lib/scoring";
+import { medalForTotal, rankWithTies, type PlayerStats, type MedalTier } from "@/lib/scoring";
 import { BonusSound } from "@/components/BonusSound";
 import { ScoreAnimation } from "@/components/ScoreAnimation";
 import { MedalAchievement } from "@/components/MedalAchievement";
@@ -23,9 +23,13 @@ export default async function HomePage() {
   const maxPts = Math.max(1, rank[0]?.rankingPoints ?? 1);
   const isAdmin = session.user.role === "ADMIN";
 
+  // Colocação com empates reais (mesma pontuação = mesma posição)
+  const ranks = rankWithTies(rank);
+
   // Stats do jogador atual
   const myStats = s.players.find((p) => p.userId === session.user.id);
-  const myPosition = rank.findIndex((p) => p.userId === session.user.id) + 1;
+  const myIdx = rank.findIndex((p) => p.userId === session.user.id);
+  const myPosition = myIdx >= 0 ? ranks[myIdx] : 0;
 
   // Thresholds individuais = coletivo ÷ nº de jogadores
   const nPlayers = Math.max(1, s.players.length);
@@ -172,15 +176,15 @@ export default async function HomePage() {
           <div className="flex flex-col items-center">
             <div className="flex items-end justify-center gap-4 pb-2">
               {/* 2° lugar */}
-              <PodiumShield player={rank[1]} position={2} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+              <PodiumShield player={rank[1]} position={2} rankLabel={ranks[1]} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
 
               {/* 1° lugar — centralizado e mais alto */}
               <div style={{ marginBottom: 20 }}>
-                <PodiumShield player={rank[0]} position={1} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+                <PodiumShield player={rank[0]} position={1} rankLabel={ranks[0]} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
               </div>
 
               {/* 3° lugar */}
-              <PodiumShield player={rank[2]} position={3} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+              <PodiumShield player={rank[2]} position={3} rankLabel={ranks[2]} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
             </div>
 
             {/* Esferas 3D no chão — estética de jogo */}
@@ -238,7 +242,7 @@ export default async function HomePage() {
               <RankRow
                 key={player.userId}
                 player={player}
-                position={idx + 1}
+                position={ranks[idx]}
                 maxPoints={maxPts}
                 bronze={indBronze}
                 silver={indSilver}
