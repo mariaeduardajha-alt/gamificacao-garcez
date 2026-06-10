@@ -26,28 +26,46 @@ export function medalForTotal(
   return "NONE";
 }
 
+/** Critérios oficiais de desempate, na ordem de prioridade. */
+export interface RankCriteria {
+  rankingPoints: number; // 1º critério: pontuação total
+  activeDays: number;    // 2º critério: dias ativos validados
+  weeksHitGoal: number;  // 3º critério: semanas com meta (≥3 dias) atingida
+  totalMinutes: number;  // 4º critério: tempo total de atividades validadas
+}
+
+/** Compara dois participantes pelos critérios oficiais (decrescente). > 0 = b vem antes. */
+export function compareRank(a: RankCriteria, b: RankCriteria): number {
+  return (
+    b.rankingPoints - a.rankingPoints ||
+    b.activeDays    - a.activeDays    ||
+    b.weeksHitGoal  - a.weeksHitGoal  ||
+    b.totalMinutes  - a.totalMinutes
+  );
+}
+
 /**
- * Colocação com empates reais (standard competition ranking, estilo "1-2-2-2-5").
+ * Colocação com desempate oficial (standard competition ranking).
  *
- * Regra: mesma pontuação = mesma colocação. A próxima colocação respeita o
- * número real de participantes acima (pula as posições empatadas).
- * NÃO usa nome, ID, ordem alfabética ou ordem de cadastro como desempate —
- * apenas a pontuação define a posição.
+ * Ordem dos critérios: pontuação total → dias ativos → semanas com meta →
+ * tempo total de atividades. Dois participantes só ficam na MESMA colocação
+ * se forem iguais em TODOS esses critérios. Quando qualquer critério difere,
+ * a colocação avança (estilo 1-2-3-4-5).
  *
- * Recebe a lista JÁ ordenada por pontuação decrescente e devolve um array de
- * colocações alinhado por índice.
+ * NÃO usa nome, ID, ordem alfabética ou ordem de cadastro como desempate.
+ * Recebe a lista JÁ ordenada por compareRank e devolve as colocações por índice.
  */
-export function rankWithTies(players: { rankingPoints: number }[]): number[] {
+export function rankWithTies(players: RankCriteria[]): number[] {
   const ranks: number[] = [];
   let currentRank = 1;
-  let previousScore: number | null = null;
+  let previous: RankCriteria | null = null;
 
   players.forEach((p, idx) => {
-    // Só muda a colocação quando a pontuação realmente cai
-    if (previousScore === null || p.rankingPoints < previousScore) {
+    // Só mantém a colocação se for empate TOTAL em todos os critérios
+    if (previous === null || compareRank(previous, p) !== 0) {
       currentRank = idx + 1;
     }
-    previousScore = p.rankingPoints;
+    previous = p;
     ranks.push(currentRank);
   });
 
@@ -156,6 +174,7 @@ export interface PlayerStats {
   weeksHitGoal: number;
   constancyBonus: number;
   rankingPoints: number; // activeDays × 10 + constancyBonus
+  totalMinutes: number;  // tempo total de atividades validadas (desempate)
 
   // Legado (mantido para não quebrar admin)
   fitnessPoints: number;
@@ -171,6 +190,7 @@ export function computePlayerStats(
   demands: Pick<Demand, "points" | "weight">[]
 ): PlayerStats {
   const totalKcal = activities.reduce((s, a) => s + a.kcal, 0);
+  const totalMinutes = activities.reduce((s, a) => s + (a.durationMin || 0), 0);
 
   // Nova lógica: dias ativos via duração
   const adStats = computeActiveDaysStats(activities);
@@ -204,6 +224,7 @@ export function computePlayerStats(
     weeksHitGoal: adStats.weeksHitGoal,
     constancyBonus: adStats.constancyBonus,
     rankingPoints: adStats.rankingPoints,
+    totalMinutes,
     // Legado
     fitnessPoints,
     demandsPoints,

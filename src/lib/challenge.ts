@@ -3,6 +3,7 @@ import {
   computePlayerStats,
   computeActiveDaysStats,
   medalForTotal,
+  compareRank,
   type PlayerStats,
   type MedalTier
 } from "./scoring";
@@ -143,10 +144,8 @@ export async function buildSnapshot(): Promise<ChallengeSnapshot> {
     computePlayerStats(u, u.activities, u.demands)
   );
 
-  // ── Ranking individual por pontuação (dias ativos × 10 + bônus) ──
-  const rankActiveDays = [...players].sort(
-    (a, b) => b.rankingPoints - a.rankingPoints || b.activeDays - a.activeDays
-  );
+  // ── Ranking individual: pontuação → dias ativos → semanas com meta → tempo total ──
+  const rankActiveDays = [...players].sort(compareRank);
 
   // ── Coletivo: dias ativos + bônus individuais convertidos em dias equivalentes
   //    rankingPoints = activeDays×10 + constancyBonus  →  ÷10 = dias equivalentes
