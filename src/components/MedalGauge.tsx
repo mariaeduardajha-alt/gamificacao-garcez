@@ -280,7 +280,7 @@ export function MedalGauge({
           </div>
 
           <div className="mt-2 font-mono text-[9px] text-rpg-textDim uppercase tracking-wider2 opacity-60">
-            6 pessoas · 30 dias · jun–jul 2026
+            6 pessoas · 31 dias · jun–jul 2026
           </div>
         </div>
       </div>
