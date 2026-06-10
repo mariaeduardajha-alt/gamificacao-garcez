@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────
+   RESPONSIVIDADE GLOBAL — sem overflow horizontal
+───────────────────────────────────── */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Card RPG: padding menor no mobile para não cortar lateralmente */
+@media (max-width: 640px) {
+  .val-card { padding: 1.1rem !important; }
+}
+
 @keyframes score-popup {
   0%   { opacity: 0; transform: translateY(20px) scale(0.92); }
   12%  { opacity: 1; transform: translateY(0)    scale(1);    }

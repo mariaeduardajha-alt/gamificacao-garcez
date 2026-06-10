@@ -40,13 +40,12 @@ export function MedalGauge({
 
   return (
     <div
-      className="relative overflow-hidden"
+      className="relative overflow-hidden p-4 sm:p-6"
       style={{
         background: "rgba(10,14,32,0.88)",
         border: "1px solid rgba(61,127,255,0.22)",
         backdropFilter: "blur(16px)",
         clipPath: "polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%)",
-        padding: "1.5rem",
       }}
     >
       {/* Faixa de topo colorida */}
@@ -64,9 +63,9 @@ export function MedalGauge({
       {/* Glow de fundo */}
       <div className="absolute inset-0 pointer-events-none" style={{ background: TIER_GLOW[tier] }} />
 
-      <div className="relative flex flex-col md:flex-row items-start gap-6">
+      <div className="relative flex flex-col md:flex-row items-stretch md:items-start gap-6">
         {/* Escudo + Pedestal + Ação Social */}
-        <div className="flex flex-col items-center shrink-0" style={{ gap: 0 }}>
+        <div className="flex flex-col items-center shrink-0 w-full max-w-[260px] mx-auto md:max-w-none md:mx-0 md:w-auto" style={{ gap: 0 }}>
 
           {/* ── Escudo ornamental com animação ── */}
           <div className={
@@ -209,25 +208,25 @@ export function MedalGauge({
         </div>
 
         {/* Dados */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 w-full text-center md:text-left">
           <div className="font-mono text-xs uppercase tracking-wider2 text-rpg-textDim">{subtitle}</div>
-          <h2 className="val-heading text-2xl mt-0.5">{title}</h2>
+          <h2 className="val-heading text-xl sm:text-2xl mt-0.5">{title}</h2>
 
           {/* Números */}
-          <div className="mt-3 flex flex-wrap gap-6">
+          <div className="mt-3 flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-3">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-wider2 text-rpg-textDim">Dias ativos</div>
-              <div className="flex items-baseline gap-1">
-                <span className="font-display text-4xl text-val-cream">{value}</span>
+              <div className="flex items-baseline gap-1 justify-center md:justify-start">
+                <span className="font-display text-3xl sm:text-4xl text-val-cream">{value}</span>
                 <span className="font-mono text-rpg-textDim text-sm">{unit}</span>
               </div>
             </div>
             {typeof totalPoints === "number" && (
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-wider2 text-rpg-textDim">Pts coletivos</div>
-                <div className="flex items-baseline gap-1">
+                <div className="flex items-baseline gap-1 justify-center md:justify-start">
                   <span
-                    className="font-display text-3xl"
+                    className="font-display text-2xl sm:text-3xl"
                     style={{ color: "#A78BFA", textShadow: "0 0 12px rgba(167,139,250,0.5)" }}
                   >
                     {totalPoints.toLocaleString("pt-BR")}

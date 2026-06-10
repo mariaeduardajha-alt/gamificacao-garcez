@@ -50,7 +50,7 @@ export default async function HomePage() {
           userId={session.user.id}
         />
       )}
-      <main className="mx-auto max-w-7xl px-4 py-8 space-y-14">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 space-y-10 sm:space-y-14">
 
         {/* ════════════════════════════════════════════════════════
             HEADER — Movimento em Jogo
@@ -62,18 +62,18 @@ export default async function HomePage() {
               background: "linear-gradient(90deg, transparent, rgba(124,77,255,0.8), rgba(61,127,255,0.8), transparent)"
             }}
           />
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider2"
+          <div className="flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6">
+            <div className="text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-2 font-mono text-[11px] sm:text-xs uppercase tracking-wider2"
                 style={{ color: "#7C4DFF" }}>
-                <span className="w-1.5 h-1.5 rounded-full animate-pulse-blue"
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse-blue shrink-0"
                   style={{ background: "#3D7FFF" }} />
                 Operação ativa · {s.daysLeft} dias restantes de {s.daysTotal}
               </div>
               <h1
                 className="val-heading mt-1"
                 style={{
-                  fontSize: "clamp(2rem, 5vw, 3.5rem)",
+                  fontSize: "clamp(1.7rem, 6vw, 3.5rem)",
                   background: "linear-gradient(135deg, #D4DCF0 30%, #A78BFA 70%, #3D7FFF 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
@@ -174,7 +174,8 @@ export default async function HomePage() {
 
           {/* Pódio centralizado */}
           <div className="flex flex-col items-center">
-            <div className="flex items-end justify-center gap-4 pb-2">
+            {/* ── Desktop: pódio horizontal 2-1-3 ── */}
+            <div className="hidden md:flex items-end justify-center gap-4 pb-2">
               {/* 2° lugar */}
               <PodiumShield player={rank[1]} position={2} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
 
@@ -184,6 +185,13 @@ export default async function HomePage() {
               </div>
 
               {/* 3° lugar */}
+              <PodiumShield player={rank[2]} position={3} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+            </div>
+
+            {/* ── Mobile: pódio vertical 1-2-3 empilhado ── */}
+            <div className="flex md:hidden flex-col items-center gap-1 pb-2 w-full">
+              <PodiumShield player={rank[0]} position={1} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+              <PodiumShield player={rank[1]} position={2} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
               <PodiumShield player={rank[2]} position={3} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
             </div>
 
@@ -340,7 +348,7 @@ function RankRow({
 
   return (
     <div
-      className="relative overflow-hidden flex items-center gap-4 px-4 py-4 transition-all"
+      className="relative overflow-hidden flex items-center gap-2.5 sm:gap-4 px-3 sm:px-4 py-3 sm:py-4 transition-all"
       style={{
         background: isTop3
           ? `linear-gradient(135deg, ${colors.badgeBg}, rgba(10,14,32,0.92))`
@@ -360,7 +368,7 @@ function RankRow({
 
       {/* Posição badge */}
       <div
-        className="font-display text-lg w-10 text-center shrink-0"
+        className="font-display text-base sm:text-lg w-7 sm:w-10 text-center shrink-0"
         style={{
           color: colors.badge,
           textShadow: isTop3 ? `0 0 10px ${colors.badge}80` : "none",
@@ -369,23 +377,25 @@ function RankRow({
         {position}°
       </div>
 
-      {/* Escudo (Medal tier) */}
-      <div className="shrink-0">
+      {/* Escudo (Medal tier) — escondido em telas pequenas para dar espaço ao nome */}
+      <div className="shrink-0 hidden sm:block">
         <Shield tier={medal} size={32} />
       </div>
 
       {/* Avatar */}
-      <PlayerAvatar name={player.name} url={player.avatarUrl} size={46} rank={position} />
+      <div className="shrink-0">
+        <PlayerAvatar name={player.name} url={player.avatarUrl} size={42} rank={position} />
+      </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div
-          className="font-display uppercase tracking-wider2 leading-tight truncate"
+          className="font-display uppercase tracking-wider2 leading-tight break-words"
           style={{ fontSize: 13, color: isTop3 ? colors.badge : "#D4DCF0" }}
         >
           {player.name}
         </div>
-        <div className="font-mono text-[10px] text-rpg-textDim mt-0.5 truncate">
+        <div className="font-mono text-[10px] text-rpg-textDim mt-0.5">
           {player.activeDays} dias ativos
           {player.constancyBonus > 0 && (
             <span style={{ color: "#A78BFA" }}> · +{player.constancyBonus} bônus</span>
@@ -405,9 +415,9 @@ function RankRow({
       </div>
 
       {/* Pontuação */}
-      <div className="text-right shrink-0 pl-2">
+      <div className="text-right shrink-0 pl-1 sm:pl-2">
         <div
-          className="font-display text-2xl leading-none"
+          className="font-display text-xl sm:text-2xl leading-none"
           style={{
             color: colors.badge,
             textShadow: isTop3 ? `0 0 12px ${colors.badge}60` : "none",
@@ -416,7 +426,7 @@ function RankRow({
           {player.rankingPoints}
         </div>
         <div className="font-mono text-[9px] text-rpg-textDim mt-0.5 uppercase tracking-wider2">
-          pontos
+          pts
         </div>
       </div>
     </div>

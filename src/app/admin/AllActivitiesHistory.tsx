@@ -91,6 +91,9 @@ export function AllActivitiesHistory({ items }: { items: Item[] }) {
             Nenhum resultado para &ldquo;{filter}&rdquo;
           </div>
         ) : (
+          <>
+          {/* ── Desktop: tabela ── */}
+          <div className="hidden md:block">
           <table className="w-full">
             <thead>
               <tr className="border-b border-val-line/30">
@@ -212,6 +215,92 @@ export function AllActivitiesHistory({ items }: { items: Item[] }) {
               })}
             </tbody>
           </table>
+          </div>
+
+          {/* ── Mobile: lista de cards ── */}
+          <div className="md:hidden divide-y divide-val-line/10">
+            {visible.map((it) => {
+              const st       = STATUS_STYLE[it.status] ?? { label: it.status, color: "#D4DCF0" };
+              const isOpen   = openNotes === it.id;
+              const hasNotes = !!it.notes?.trim();
+              return (
+                <div key={it.id} className="px-4 py-3">
+                  <div className="flex items-start justify-between gap-2">
+                    {/* Agente (clicável p/ notas) */}
+                    <button
+                      onClick={() => hasNotes && setOpenNotes(isOpen ? null : it.id)}
+                      className="min-w-0 text-left"
+                      style={{ cursor: hasNotes ? "pointer" : "default" }}
+                    >
+                      <div className="flex items-center gap-1 font-display uppercase tracking-wider2 text-xs break-words"
+                        style={{ color: isOpen ? "#3D7FFF" : "#D4DCF0" }}>
+                        {it.user.name}
+                        {hasNotes && (
+                          <svg viewBox="0 0 10 10" width="9" height="9" fill="none"
+                            stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
+                            style={{ color: isOpen ? "#3D7FFF" : "rgba(61,127,255,0.5)",
+                              transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }}>
+                            <path d="M1.5 3.5l3 3 3-3" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="font-mono text-[10px] text-val-line break-all">{it.user.email}</div>
+                    </button>
+                    {/* Status + excluir */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5"
+                        style={{ color: st.color, background: `${st.color}18`, border: `1px solid ${st.color}40` }}>
+                        {st.label}
+                      </span>
+                      <button
+                        onClick={() => handleDelete(it.id)}
+                        disabled={busy === it.id}
+                        title="Excluir"
+                        className="flex items-center justify-center w-7 h-7 rounded hover:bg-red-500/15 transition-colors"
+                        style={{ color: busy === it.id ? "rgba(255,255,255,0.2)" : "rgba(255,70,85,0.65)" }}
+                      >
+                        <svg viewBox="0 0 16 18" width="12" height="14" fill="none"
+                          stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 4h14M6 4V2h4v2M5 4v10a1 1 0 001 1h4a1 1 0 001-1V4" />
+                          <line x1="7" y1="7" x2="7" y2="12" /><line x1="9" y1="7" x2="9" y2="12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Linha de dados */}
+                  <div className="font-mono text-[11px] text-rpg-textDim mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="text-val-cream">{new Date(it.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}</span>
+                    <span>·</span>
+                    <span className="font-display uppercase tracking-wider2 text-val-cream">{it.type.replace("_", " ")}</span>
+                    <span>·</span>
+                    <span>{it.durationMin ? `${it.durationMin} min` : "—"}</span>
+                    {it.proofUrl && (
+                      <a href={it.proofUrl} target="_blank"
+                        className="font-display uppercase tracking-wider2 text-xs ml-1"
+                        style={{ color: "#3D7FFF" }}>
+                        · Ver print
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Observação expandida */}
+                  {isOpen && hasNotes && (
+                    <div className="flex items-start gap-2 px-3 py-2 font-mono text-xs mt-2"
+                      style={{ background: "rgba(61,127,255,0.05)", border: "1px solid rgba(61,127,255,0.15)", borderLeft: "3px solid rgba(61,127,255,0.55)" }}>
+                      <svg viewBox="0 0 16 16" width="13" height="13" fill="none"
+                        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                        style={{ color: "#3D7FFF", marginTop: 1, flexShrink: 0 }}>
+                        <path d="M2 4h12M2 8h8M2 12h6" />
+                      </svg>
+                      <span style={{ color: "rgba(212,220,240,0.8)", lineHeight: 1.5 }}>{it.notes}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          </>
         )}
       </div>
 

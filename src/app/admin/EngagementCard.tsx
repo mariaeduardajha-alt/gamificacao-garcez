@@ -78,7 +78,8 @@ export function EngagementCard({ players }: { players: PlayerEngagement[] }) {
 
       {/* Lista por agente */}
       <div className="val-card p-0 overflow-hidden">
-        <table className="w-full">
+        {/* ── Desktop: tabela ── */}
+        <table className="w-full hidden md:table">
           <thead>
             <tr className="border-b border-val-line/30">
               <th className="px-4 py-3 text-left font-display uppercase tracking-wider2 text-xs text-val-line">Agente</th>
@@ -173,6 +174,64 @@ export function EngagementCard({ players }: { players: PlayerEngagement[] }) {
             ))}
           </tbody>
         </table>
+
+        {/* ── Mobile: lista de cards ── */}
+        <div className="md:hidden divide-y divide-val-line/10">
+          {players.map((p) => (
+            <div key={p.userId} className="px-4 py-3 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center shrink-0"
+                style={{ background: "rgba(13,19,48,0.8)", border: "1px solid rgba(61,127,255,0.25)" }}>
+                {p.avatarUrl ? (
+                  <img src={p.avatarUrl} alt={p.name}
+                    className="w-full h-full object-cover" style={{ objectPosition: "center 15%" }} />
+                ) : (
+                  <span style={{ fontSize: 11, color: "#3D7FFF", fontWeight: 700 }}>
+                    {p.name.split(" ").slice(0,2).map(n => n[0]).join("").toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-display uppercase tracking-wider2 text-sm text-val-cream truncate">
+                    {p.name.split(" ")[0]}
+                  </span>
+                  {p.onTrack ? (
+                    <span className="font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5 shrink-0"
+                      style={{ color: "#2DD4BF", background: "rgba(45,212,191,0.10)", border: "1px solid rgba(45,212,191,0.30)" }}>
+                      ✦ No ritmo
+                    </span>
+                  ) : p.currentWeekDays > 0 ? (
+                    <span className="font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5 shrink-0"
+                      style={{ color: "#F0C040", background: "rgba(240,192,48,0.10)", border: "1px solid rgba(240,192,48,0.30)" }}>
+                      ⚡ Progresso
+                    </span>
+                  ) : (
+                    <span className="font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5 shrink-0"
+                      style={{ color: "#FF4655", background: "rgba(255,70,85,0.08)", border: "1px solid rgba(255,70,85,0.25)" }}>
+                      ✕ Sem ativ.
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 mt-1.5 font-mono text-[10px] text-rpg-textDim">
+                  <span className="flex items-center gap-1">
+                    Semana:
+                    <span className="flex items-center gap-1">
+                      {[1, 2, 3].map((n) => (
+                        <span key={n} className="inline-block w-2.5 h-2.5 rounded-full"
+                          style={{
+                            background: p.currentWeekDays >= n ? (p.onTrack ? "#2DD4BF" : "#F0C040") : "rgba(255,255,255,0.08)",
+                            border: p.currentWeekDays >= n ? "none" : "1px solid rgba(255,255,255,0.12)",
+                          }} />
+                      ))}
+                    </span>
+                  </span>
+                  <span style={{ color: "#A78BFA" }}>Meta {p.weeksHitGoal}/{p.totalWeeks}</span>
+                  <span className="text-val-cream">Dias {p.activeDays}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Dicas de engajamento */}

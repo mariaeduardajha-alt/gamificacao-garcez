@@ -24,15 +24,15 @@ export default async function MinhasPage() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-5xl px-6 py-10 space-y-6">
-        <div className="flex items-end justify-between">
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
           <div>
-            <h1 className="val-heading text-3xl">Minhas atividades</h1>
+            <h1 className="val-heading text-2xl sm:text-3xl">Minhas atividades</h1>
             <p className="font-mono text-val-line text-xs uppercase tracking-wider2 mt-1">
               {approved.length} aprovadas · {activeDays} dias ativos
             </p>
           </div>
-          <Link href="/registrar" className="val-btn-danger">+ Nova atividade</Link>
+          <Link href="/registrar" className="val-btn-danger w-full sm:w-auto">+ Nova atividade</Link>
         </div>
 
         <div className="val-card p-0 overflow-hidden">

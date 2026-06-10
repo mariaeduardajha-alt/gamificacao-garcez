@@ -71,15 +71,15 @@ export default async function AdminPage() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-6xl px-6 py-10 space-y-8">
-        <div className="flex items-end justify-between">
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-10 space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
           <div>
-            <h1 className="val-heading text-3xl">Central de Comando</h1>
+            <h1 className="val-heading text-2xl sm:text-3xl">Central de Comando</h1>
             <p className="font-mono text-val-line text-xs uppercase tracking-wider2 mt-1">
               {allActivities.length} atividades registradas · {pendingDemands.length} demandas pendentes
             </p>
           </div>
-          <Link href="/admin/usuarios" className="val-btn-outline">Gerenciar agentes</Link>
+          <Link href="/admin/usuarios" className="val-btn-outline w-full sm:w-auto">Gerenciar agentes</Link>
         </div>
 
         {/* Histórico de atividades */}

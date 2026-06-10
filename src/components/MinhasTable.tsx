@@ -102,64 +102,104 @@ export function MinhasTable({ activities }: { activities: Activity[] }) {
         </div>
       )}
 
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-val-line/30">
-            {/* Checkbox selecionar todos */}
-            <th className="px-4 py-3 w-10">
-              <Checkbox
-                checked={allChecked}
-                indeterminate={someChecked}
-                onChange={toggleAll}
-              />
-            </th>
-            <Th>Data</Th>
-            <Th>Tipo</Th>
-            <Th className="text-right">Duração</Th>
-            <Th>Status</Th>
-            <Th>Print / Ações</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {activities.map((a) => {
-            const isSelected = selected.has(a.id);
-            const color = STATUS_COLOR[a.status] ?? "#D4DCF0";
-            return (
-              <tr
-                key={a.id}
-                className="border-b border-val-line/10 transition-colors"
-                style={{
-                  background: isSelected ? "rgba(61,127,255,0.06)" : undefined,
-                }}
-              >
-                <td className="px-4 py-3 w-10">
-                  <Checkbox checked={isSelected} onChange={() => toggle(a.id)} />
-                </td>
-                <td className="px-4 py-3 font-mono text-sm text-val-cream">
-                  {new Date(a.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}
-                </td>
-                <td className="px-4 py-3 font-display uppercase tracking-wider2 text-sm text-val-cream">
-                  {a.type.replace("_", " ")}
-                </td>
-                <td className="px-4 py-3 font-mono text-right text-sm text-val-cream">
-                  {a.durationMin ? `${a.durationMin} min` : "—"}
-                </td>
-                <td className="px-4 py-3">
+      {/* ── Desktop: tabela ── */}
+      <div className="hidden md:block">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-val-line/30">
+              <th className="px-4 py-3 w-10">
+                <Checkbox
+                  checked={allChecked}
+                  indeterminate={someChecked}
+                  onChange={toggleAll}
+                />
+              </th>
+              <Th>Data</Th>
+              <Th>Tipo</Th>
+              <Th className="text-right">Duração</Th>
+              <Th>Status</Th>
+              <Th>Print / Ações</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {activities.map((a) => {
+              const isSelected = selected.has(a.id);
+              const color = STATUS_COLOR[a.status] ?? "#D4DCF0";
+              return (
+                <tr
+                  key={a.id}
+                  className="border-b border-val-line/10 transition-colors"
+                  style={{ background: isSelected ? "rgba(61,127,255,0.06)" : undefined }}
+                >
+                  <td className="px-4 py-3 w-10">
+                    <Checkbox checked={isSelected} onChange={() => toggle(a.id)} />
+                  </td>
+                  <td className="px-4 py-3 font-mono text-sm text-val-cream">
+                    {new Date(a.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}
+                  </td>
+                  <td className="px-4 py-3 font-display uppercase tracking-wider2 text-sm text-val-cream">
+                    {a.type.replace("_", " ")}
+                  </td>
+                  <td className="px-4 py-3 font-mono text-right text-sm text-val-cream">
+                    {a.durationMin ? `${a.durationMin} min` : "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className="font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5"
+                      style={{ color, background: `${color}18`, border: `1px solid ${color}40` }}
+                    >
+                      {STATUS_LABEL[a.status] ?? a.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <ActivityActions id={a.id} proofUrl={a.proofUrl} />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ── Mobile: lista de cards ── */}
+      <div className="md:hidden divide-y divide-val-line/10">
+        {activities.map((a) => {
+          const isSelected = selected.has(a.id);
+          const color = STATUS_COLOR[a.status] ?? "#D4DCF0";
+          return (
+            <div
+              key={a.id}
+              className="flex items-start gap-3 px-4 py-3"
+              style={{ background: isSelected ? "rgba(61,127,255,0.06)" : undefined }}
+            >
+              <div className="pt-0.5 shrink-0">
+                <Checkbox checked={isSelected} onChange={() => toggle(a.id)} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="font-display uppercase tracking-wider2 text-sm text-val-cream break-words">
+                    {a.type.replace("_", " ")}
+                  </span>
                   <span
-                    className="font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5"
+                    className="font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5 shrink-0"
                     style={{ color, background: `${color}18`, border: `1px solid ${color}40` }}
                   >
                     {STATUS_LABEL[a.status] ?? a.status}
                   </span>
-                </td>
-                <td className="px-4 py-3">
+                </div>
+                <div className="font-mono text-[11px] text-rpg-textDim mt-1">
+                  {new Date(a.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}
+                  {" · "}
+                  {a.durationMin ? `${a.durationMin} min` : "—"}
+                </div>
+                <div className="mt-2">
                   <ActivityActions id={a.id} proofUrl={a.proofUrl} />
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </>
   );
 }

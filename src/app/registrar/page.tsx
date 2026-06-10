@@ -72,9 +72,9 @@ export default function RegistrarPage() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-3xl px-6 py-10">
-        <div className="mb-8">
-          <h1 className="val-heading text-3xl">Registrar atividade</h1>
+      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-10">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="val-heading text-2xl sm:text-3xl">Registrar atividade</h1>
           <p className="font-mono text-val-line text-xs uppercase tracking-wider2 mt-1">
             Registre seus dados · print opcional
           </p>
@@ -226,11 +226,11 @@ export default function RegistrarPage() {
             )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <button type="button" onClick={() => router.back()} className="val-btn-outline">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-between gap-3">
+            <button type="button" onClick={() => router.back()} className="val-btn-outline w-full sm:w-auto">
               Cancelar
             </button>
-            <button type="submit" disabled={status === "loading"} className="val-btn-danger">
+            <button type="submit" disabled={status === "loading"} className="val-btn-danger w-full sm:w-auto">
               {status === "loading" ? "Enviando…" : "Confirmar Registro"}
             </button>
           </div>
