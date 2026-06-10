@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { MedalTier } from "@/lib/scoring";
+import { playTones } from "@/lib/audio";
 
 const TIER_RANK: Record<MedalTier, number> = {
   NONE: 0, BRONZE: 1, SILVER: 2, GOLD: 3,
@@ -18,56 +19,43 @@ const TIER_COLOR: Record<MedalTier, string> = {
   GOLD:   "#F0C040",
 };
 
-/* ── Som de conquista de escudo ───────────────────────────────── */
+/* ── Som de conquista de escudo (contexto compartilhado p/ mobile) ── */
 function playConquestSound(tier: MedalTier) {
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-
-    const play = (
-      freq: number, start: number, dur: number,
-      type: OscillatorType = "square", vol = 0.13
-    ) => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-      gain.gain.setValueAtTime(vol, ctx.currentTime + start);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
-      osc.start(ctx.currentTime + start);
-      osc.stop(ctx.currentTime  + start + dur + 0.02);
-    };
-
-    if (tier === "BRONZE") {
-      // Conquista Bronze — fanfarra simples
-      play(392.00, 0.00, 0.12);
-      play(523.25, 0.12, 0.12);
-      play(659.25, 0.24, 0.12);
-      play(783.99, 0.36, 0.50, "square", 0.15);
-      play(659.25, 0.44, 0.42, "triangle", 0.10);
-    } else if (tier === "SILVER") {
-      // Conquista Prata — mais elaborada
-      play(392.00, 0.00, 0.10);
-      play(523.25, 0.10, 0.10);
-      play(659.25, 0.20, 0.10);
-      play(783.99, 0.30, 0.10);
-      play(1046.5, 0.40, 0.60, "square",   0.15);
-      play(783.99, 0.46, 0.54, "triangle", 0.10);
-      play(659.25, 0.52, 0.48, "triangle", 0.07);
-    } else if (tier === "GOLD") {
-      // Conquista Ouro — épica máxima
-      play(261.63, 0.00, 0.10);
-      play(392.00, 0.10, 0.10);
-      play(523.25, 0.20, 0.10);
-      play(659.25, 0.30, 0.10);
-      play(783.99, 0.40, 0.10);
-      play(1046.5, 0.50, 0.12);
-      play(1318.5, 0.60, 0.80, "square",   0.16);
-      play(1046.5, 0.65, 0.75, "triangle", 0.12);
-      play(783.99, 0.70, 0.70, "triangle", 0.08);
-      play(523.25, 0.75, 0.65, "triangle", 0.06);
-    }
-  } catch { /* sem audio */ }
+  if (tier === "BRONZE") {
+    // Conquista Bronze — fanfarra simples
+    playTones([
+      [392.00, 0.00, 0.12, "square",   0.13],
+      [523.25, 0.12, 0.12, "square",   0.13],
+      [659.25, 0.24, 0.12, "square",   0.13],
+      [783.99, 0.36, 0.50, "square",   0.15],
+      [659.25, 0.44, 0.42, "triangle", 0.10],
+    ]);
+  } else if (tier === "SILVER") {
+    // Conquista Prata — mais elaborada
+    playTones([
+      [392.00, 0.00, 0.10, "square",   0.13],
+      [523.25, 0.10, 0.10, "square",   0.13],
+      [659.25, 0.20, 0.10, "square",   0.13],
+      [783.99, 0.30, 0.10, "square",   0.13],
+      [1046.5, 0.40, 0.60, "square",   0.15],
+      [783.99, 0.46, 0.54, "triangle", 0.10],
+      [659.25, 0.52, 0.48, "triangle", 0.07],
+    ]);
+  } else if (tier === "GOLD") {
+    // Conquista Ouro — épica máxima
+    playTones([
+      [261.63, 0.00, 0.10, "square",   0.13],
+      [392.00, 0.10, 0.10, "square",   0.13],
+      [523.25, 0.20, 0.10, "square",   0.13],
+      [659.25, 0.30, 0.10, "square",   0.13],
+      [783.99, 0.40, 0.10, "square",   0.13],
+      [1046.5, 0.50, 0.12, "square",   0.13],
+      [1318.5, 0.60, 0.80, "square",   0.16],
+      [1046.5, 0.65, 0.75, "triangle", 0.12],
+      [783.99, 0.70, 0.70, "triangle", 0.08],
+      [523.25, 0.75, 0.65, "triangle", 0.06],
+    ]);
+  }
 }
 
 /* ── Componente ───────────────────────────────────────────────── */

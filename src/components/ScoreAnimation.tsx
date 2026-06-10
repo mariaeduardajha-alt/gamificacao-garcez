@@ -1,54 +1,29 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { playTones } from "@/lib/audio";
 
-/* ── Sons ─────────────────────────────────────────────────────── */
+/* ── Sons (contexto de áudio compartilhado p/ funcionar no mobile) ── */
 function playDaySound() {
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const notes: [number, number, number][] = [
-      [783.99, 0.00, 0.10],
-      [987.77, 0.10, 0.10],
-      [1318.5, 0.20, 0.10],
-      [1567.9, 0.30, 0.45],
-    ];
-    for (const [freq, start, dur] of notes) {
-      const osc = ctx.createOscillator(); const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = "square";
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-      gain.gain.setValueAtTime(0.12, ctx.currentTime + start);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
-      osc.start(ctx.currentTime + start);
-      osc.stop(ctx.currentTime + start + dur + 0.02);
-    }
-  } catch { /* sem audio */ }
+  playTones([
+    [783.99, 0.00, 0.10, "square", 0.12],
+    [987.77, 0.10, 0.10, "square", 0.12],
+    [1318.5, 0.20, 0.10, "square", 0.12],
+    [1567.9, 0.30, 0.45, "square", 0.12],
+  ]);
 }
 
 function playBonusSound() {
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    // Fanfarra mais épica para o bônus
-    const notes: [number, number, number, OscillatorType][] = [
-      [523.25, 0.00, 0.10, "square"],
-      [659.25, 0.10, 0.10, "square"],
-      [783.99, 0.20, 0.10, "square"],
-      [1046.5, 0.30, 0.12, "square"],
-      [1318.5, 0.40, 0.65, "square"],
-      [1046.5, 0.42, 0.63, "triangle"],
-      [783.99, 0.44, 0.61, "triangle"],
-    ];
-    for (const [freq, start, dur, type] of notes) {
-      const osc = ctx.createOscillator(); const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-      gain.gain.setValueAtTime(0.11, ctx.currentTime + start);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
-      osc.start(ctx.currentTime + start);
-      osc.stop(ctx.currentTime + start + dur + 0.02);
-    }
-  } catch { /* sem audio */ }
+  // Fanfarra mais épica para o bônus
+  playTones([
+    [523.25, 0.00, 0.10, "square",   0.11],
+    [659.25, 0.10, 0.10, "square",   0.11],
+    [783.99, 0.20, 0.10, "square",   0.11],
+    [1046.5, 0.30, 0.12, "square",   0.11],
+    [1318.5, 0.40, 0.65, "square",   0.11],
+    [1046.5, 0.42, 0.63, "triangle", 0.11],
+    [783.99, 0.44, 0.61, "triangle", 0.11],
+  ]);
 }
 
 /* ── Contador ─────────────────────────────────────────────────── */
