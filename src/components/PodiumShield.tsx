@@ -83,7 +83,6 @@ function CornerOrnament({ color, x, y, flip }: { color: string; x: number; y: nu
 export function PodiumShield({
   player,
   position,
-  rankLabel,
   maxPoints,
   bronze = 8,
   silver = 12,
@@ -91,7 +90,6 @@ export function PodiumShield({
 }: {
   player: PlayerStats | undefined;
   position: 1 | 2 | 3;
-  rankLabel?: number;
   maxPoints: number;
   bronze?: number;
   silver?: number;
@@ -409,7 +407,7 @@ export function PodiumShield({
               letterSpacing: "0.15em",
             }}
           >
-            {rankLabel != null ? `${rankLabel}°` : t.posLabel}
+            {t.posLabel}
           </span>
         </div>
 

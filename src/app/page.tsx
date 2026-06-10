@@ -176,15 +176,15 @@ export default async function HomePage() {
           <div className="flex flex-col items-center">
             <div className="flex items-end justify-center gap-4 pb-2">
               {/* 2° lugar */}
-              <PodiumShield player={rank[1]} position={2} rankLabel={ranks[1]} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+              <PodiumShield player={rank[1]} position={2} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
 
               {/* 1° lugar — centralizado e mais alto */}
               <div style={{ marginBottom: 20 }}>
-                <PodiumShield player={rank[0]} position={1} rankLabel={ranks[0]} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+                <PodiumShield player={rank[0]} position={1} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
               </div>
 
               {/* 3° lugar */}
-              <PodiumShield player={rank[2]} position={3} rankLabel={ranks[2]} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+              <PodiumShield player={rank[2]} position={3} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
             </div>
 
             {/* Esferas 3D no chão — estética de jogo */}
