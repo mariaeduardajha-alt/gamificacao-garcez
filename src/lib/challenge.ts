@@ -86,7 +86,8 @@ export interface ChallengeSnapshot {
   challenge: Awaited<ReturnType<typeof getActiveChallenge>>;
 
   // ── MOVIMENTO EM JOGO: coletivo (junho) ──
-  totalCollectiveActiveDays: number;
+  totalCollectiveActiveDays: number;  // só dias reais (meta coletiva)
+  totalCollectivePoints: number;      // base (dias×10) + bônus de constância
   collectiveMedal: MedalTier;
   collectiveNext: { target: number; label: string } | null;
   collectiveProgressPct: number;
@@ -147,14 +148,22 @@ export async function buildSnapshot(): Promise<ChallengeSnapshot> {
   // ── Ranking individual: pontuação → dias ativos → semanas com meta → tempo total ──
   const rankActiveDays = [...players].sort(compareRank);
 
-  // ── Coletivo: dias ativos + bônus individuais convertidos em dias equivalentes
-  //    rankingPoints = activeDays×10 + constancyBonus  →  ÷10 = dias equivalentes
-  //    Assim o esforço de constância individual recompensa o desbloqueio coletivo.
-  let totalCollectiveActiveDays = 0;
+  // ── Coletivo: SEPARAÇÃO OBRIGATÓRIA entre dias ativos e pontuação ──
+  //
+  // Dias ativos coletivos = SOMENTE dias reais de atividade física validada
+  //   (≥30 min). O bônus de constância NÃO vira dia ativo.
+  //   → usado para o progresso da Meta Coletiva (48/72/96 dias).
+  //
+  // Pontuação coletiva = base (dias × 10) + bônus de constância.
+  //   → usada apenas como pontuação total da equipe (não afeta a meta em dias).
+  let totalCollectiveActiveDays = 0;   // soma dos activeDays reais
+  let collectiveBonusPoints     = 0;   // soma dos bônus de constância
   for (const p of players) {
-    totalCollectiveActiveDays += p.rankingPoints / 10;
+    totalCollectiveActiveDays += p.activeDays;
+    collectiveBonusPoints     += p.constancyBonus;
   }
-  totalCollectiveActiveDays = Math.round(totalCollectiveActiveDays);
+  const collectiveBasePoints  = totalCollectiveActiveDays * 10;
+  const totalCollectivePoints = collectiveBasePoints + collectiveBonusPoints;
 
   const collectiveMedal = medalForTotal(
     totalCollectiveActiveDays,
@@ -235,6 +244,7 @@ export async function buildSnapshot(): Promise<ChallengeSnapshot> {
   return {
     challenge,
     totalCollectiveActiveDays,
+    totalCollectivePoints,
     collectiveMedal,
     collectiveNext,
     collectiveProgressPct,

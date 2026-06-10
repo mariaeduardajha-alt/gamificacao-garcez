@@ -156,7 +156,7 @@ export default async function HomePage() {
             gold={s.challenge.goldActiveDays}
             tier={s.collectiveMedal}
             next={s.collectiveNext}
-            totalPoints={s.totalCollectiveActiveDays * 10}
+            totalPoints={s.totalCollectivePoints}
             socialAction={s.collectiveMedal !== "NONE"}
           />
         </section>
