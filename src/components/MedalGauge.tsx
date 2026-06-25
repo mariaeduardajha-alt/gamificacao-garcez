@@ -36,7 +36,7 @@ export function MedalGauge({
   const pct       = Math.min(100, (value / gold) * 100);
   const bronzePct = (bronze / gold) * 100;
   const silverPct = (silver / gold) * 100;
-  const actionUnlocked = socialAction ?? tier !== "NONE";
+  const actionUnlocked = socialAction ?? tier === "GOLD";
 
   return (
     <div
