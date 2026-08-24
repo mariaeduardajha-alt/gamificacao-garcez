@@ -6,3 +6,12 @@ node_modules
 next-env.d.ts
 .vercel
 .DS_Store
+
+# Uploads de usuário (comprovantes, avatares) — conteúdo gerado em runtime,
+# não deve ir para o controle de versão. Ver docs/standards/09-git-workflow.md
+# (ancorado na raiz com "/" na frente — sem isso também casaria com a rota
+# real src/app/uploads/, que precisa continuar versionada)
+/uploads/
+
+# Screenshots gerados por node tests/e2e.mjs — artefato de execução local
+tests/screenshots/
