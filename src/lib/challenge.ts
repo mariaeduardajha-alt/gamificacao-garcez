@@ -2,6 +2,8 @@ import { prisma } from "./prisma";
 import {
   computePlayerStats,
   medalForTotal,
+  tierForValue,
+  nextTierTarget,
   compareRank,
   type PlayerStats,
   type MedalTier
@@ -41,44 +43,6 @@ export interface SectorGoalData {
   nextTarget: number | null;
   nextLabel: string | null;
   gap: number | null; // quanto falta (sempre positivo)
-}
-
-function computeSectorTier(
-  current: number,
-  bronze: number,
-  silver: number,
-  gold: number,
-  direction: "HIGHER_IS_BETTER" | "LOWER_IS_BETTER"
-): MedalTier {
-  if (direction === "HIGHER_IS_BETTER") {
-    return medalForTotal(current, bronze, silver, gold);
-  } else {
-    // Menor = melhor: gold ≤ current ≤ bronze
-    if (current <= gold) return "GOLD";
-    if (current <= silver) return "SILVER";
-    if (current <= bronze) return "BRONZE";
-    return "NONE";
-  }
-}
-
-function computeSectorNext(
-  current: number,
-  bronze: number,
-  silver: number,
-  gold: number,
-  direction: "HIGHER_IS_BETTER" | "LOWER_IS_BETTER"
-): { nextTarget: number; nextLabel: string; gap: number } | null {
-  if (direction === "HIGHER_IS_BETTER") {
-    if (current < bronze) return { nextTarget: bronze, nextLabel: "BRONZE", gap: bronze - current };
-    if (current < silver) return { nextTarget: silver, nextLabel: "PRATA",  gap: silver - current };
-    if (current < gold)   return { nextTarget: gold,   nextLabel: "OURO",   gap: gold - current };
-    return null;
-  } else {
-    if (current > bronze) return { nextTarget: bronze, nextLabel: "BRONZE", gap: current - bronze };
-    if (current > silver) return { nextTarget: silver, nextLabel: "PRATA",  gap: current - silver };
-    if (current > gold)   return { nextTarget: gold,   nextLabel: "OURO",   gap: current - gold };
-    return null;
-  }
 }
 
 export interface ChallengeSnapshot {
@@ -164,8 +128,8 @@ export async function buildSnapshot(): Promise<ChallengeSnapshot> {
   // ── Metas dos Setores ──
   const rawGoals = await prisma.sectorGoal.findMany({ orderBy: { createdAt: "asc" } });
   const sectorGoals: SectorGoalData[] = rawGoals.map((g) => {
-    const tier = computeSectorTier(g.current, g.bronze, g.silver, g.gold, g.direction);
-    const next = computeSectorNext(g.current, g.bronze, g.silver, g.gold, g.direction);
+    const tier = tierForValue(g.current, g.bronze, g.silver, g.gold, g.direction);
+    const next = nextTierTarget(g.current, g.bronze, g.silver, g.gold, g.direction);
     return {
       id: g.id,
       area: g.area,
@@ -179,8 +143,8 @@ export async function buildSnapshot(): Promise<ChallengeSnapshot> {
       direction: g.direction,
       avatarUrl: g.avatarUrl,
       tier,
-      nextTarget: next?.nextTarget ?? null,
-      nextLabel: next?.nextLabel ?? null,
+      nextTarget: next?.target ?? null,
+      nextLabel: next?.label ?? null,
       gap: next?.gap ?? null
     };
   });

@@ -6,6 +6,8 @@ import {
   rankWithTies,
   computeActiveDaysStats,
   medalForTotal,
+  tierForValue,
+  nextTierTarget,
   isoWeekKey,
   WEIGHT_POINTS,
   type RankCriteria,
@@ -86,6 +88,33 @@ describe("medalForTotal", () => {
     expect(medalForTotal(10, 10, 20, 30)).toBe("BRONZE");
     expect(medalForTotal(20, 10, 20, 30)).toBe("SILVER");
     expect(medalForTotal(30, 10, 20, 30)).toBe("GOLD");
+  });
+});
+
+describe("tierForValue", () => {
+  it("HIGHER_IS_BETTER bate com medalForTotal", () => {
+    for (const v of [0, 10, 20, 30, 35]) {
+      expect(tierForValue(v, 10, 20, 30, "HIGHER_IS_BETTER")).toBe(medalForTotal(v, 10, 20, 30));
+    }
+  });
+
+  it("LOWER_IS_BETTER inverte a comparação (gold ≤ current ≤ bronze)", () => {
+    expect(tierForValue(5, 30, 20, 10, "LOWER_IS_BETTER")).toBe("GOLD");
+    expect(tierForValue(15, 30, 20, 10, "LOWER_IS_BETTER")).toBe("SILVER");
+    expect(tierForValue(25, 30, 20, 10, "LOWER_IS_BETTER")).toBe("BRONZE");
+    expect(tierForValue(40, 30, 20, 10, "LOWER_IS_BETTER")).toBe("NONE");
+  });
+});
+
+describe("nextTierTarget", () => {
+  it("HIGHER_IS_BETTER aponta pro próximo limiar e a diferença", () => {
+    expect(nextTierTarget(5, 10, 20, 30)).toEqual({ target: 10, label: "BRONZE", gap: 5 });
+    expect(nextTierTarget(30, 10, 20, 30)).toBeNull();
+  });
+
+  it("LOWER_IS_BETTER aponta pro próximo limiar na direção inversa", () => {
+    expect(nextTierTarget(25, 30, 20, 10, "LOWER_IS_BETTER")).toEqual({ target: 20, label: "PRATA", gap: 5 });
+    expect(nextTierTarget(10, 30, 20, 10, "LOWER_IS_BETTER")).toBeNull();
   });
 });
 

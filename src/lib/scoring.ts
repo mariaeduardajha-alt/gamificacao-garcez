@@ -1,6 +1,53 @@
 import type { Activity, DemandWeight } from "@prisma/client";
 
 export type MedalTier = "NONE" | "BRONZE" | "SILVER" | "GOLD";
+export type TierDirection = "HIGHER_IS_BETTER" | "LOWER_IS_BETTER";
+
+/**
+ * Determina o tier atual dado um valor e os 3 limiares, parametrizado por
+ * direção. Usado tanto pro caso simples (medalForTotal, sempre
+ * HIGHER_IS_BETTER) quanto pras metas de setor (que podem ser
+ * LOWER_IS_BETTER — ex.: "reduzir tempo de resposta").
+ */
+export function tierForValue(
+  current: number,
+  bronze: number,
+  silver: number,
+  gold: number,
+  direction: TierDirection = "HIGHER_IS_BETTER"
+): MedalTier {
+  if (direction === "HIGHER_IS_BETTER") {
+    if (current >= gold) return "GOLD";
+    if (current >= silver) return "SILVER";
+    if (current >= bronze) return "BRONZE";
+    return "NONE";
+  }
+  // Menor = melhor: gold ≤ current ≤ bronze
+  if (current <= gold) return "GOLD";
+  if (current <= silver) return "SILVER";
+  if (current <= bronze) return "BRONZE";
+  return "NONE";
+}
+
+/** Próximo limiar a bater e quanto falta, na mesma direção de tierForValue. */
+export function nextTierTarget(
+  current: number,
+  bronze: number,
+  silver: number,
+  gold: number,
+  direction: TierDirection = "HIGHER_IS_BETTER"
+): { target: number; label: string; gap: number } | null {
+  if (direction === "HIGHER_IS_BETTER") {
+    if (current < bronze) return { target: bronze, label: "BRONZE", gap: bronze - current };
+    if (current < silver) return { target: silver, label: "PRATA", gap: silver - current };
+    if (current < gold) return { target: gold, label: "OURO", gap: gold - current };
+    return null;
+  }
+  if (current > bronze) return { target: bronze, label: "BRONZE", gap: current - bronze };
+  if (current > silver) return { target: silver, label: "PRATA", gap: current - silver };
+  if (current > gold) return { target: gold, label: "OURO", gap: current - gold };
+  return null;
+}
 
 export function medalForTotal(
   total: number,
@@ -8,10 +55,7 @@ export function medalForTotal(
   silver: number,
   gold: number
 ): MedalTier {
-  if (total >= gold) return "GOLD";
-  if (total >= silver) return "SILVER";
-  if (total >= bronze) return "BRONZE";
-  return "NONE";
+  return tierForValue(total, bronze, silver, gold, "HIGHER_IS_BETTER");
 }
 
 /** Critérios oficiais de desempate, na ordem de prioridade. */
