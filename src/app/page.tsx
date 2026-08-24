@@ -1,13 +1,13 @@
-import React from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { buildSnapshot } from "@/lib/challenge";
 import { Navbar } from "@/components/Navbar";
 import { MedalGauge } from "@/components/MedalGauge";
 import { PodiumShield } from "@/components/PodiumShield";
-import { PlayerAvatar } from "@/components/PlayerAvatar";
-import { MedalBadge } from "@/components/MedalBadge";
-import { medalForTotal, rankWithTies, type PlayerStats, type MedalTier } from "@/lib/scoring";
+import { SectionHeader } from "@/components/SectionHeader";
+import { MissionStat } from "@/components/MissionStat";
+import { RankRow } from "@/components/RankRow";
+import { medalForTotal, rankWithTies } from "@/lib/scoring";
 import { BonusSound } from "@/components/BonusSound";
 import { ScoreAnimation } from "@/components/ScoreAnimation";
 import { MedalAchievement } from "@/components/MedalAchievement";
@@ -88,9 +88,8 @@ export default async function HomePage() {
             </div>
 
             {/* Painel de missão — igual para todos */}
-            {true && (
-              <div className="grid grid-cols-2 gap-3">
-                <MissionStat
+            <div className="grid grid-cols-2 gap-3">
+              <MissionStat
                   icon={
                     <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="10,2 12.5,7.5 18,8.2 14,12 15.2,18 10,15 4.8,18 6,12 2,8.2 7.5,7.5" />
@@ -132,7 +131,6 @@ export default async function HomePage() {
                   color="#3D7FFF"
                 />
               </div>
-            )}
           </div>
         </section>
 
@@ -262,173 +260,5 @@ export default async function HomePage() {
 
       </main>
     </>
-  );
-}
-
-/* ── Sub-components ──────────────────────────────────────────────────── */
-
-function SectionHeader({
-  icon, title, subtitle, color
-}: { icon: string; title: string; subtitle: string; color: string }) {
-  return (
-    <div className="flex items-center gap-3 mb-6">
-      <div className="w-1 h-8 rounded-full" style={{ background: color }} />
-      <div>
-        <h2 className="val-heading text-2xl md:text-3xl">
-          <span className="mr-2 text-xl">{icon}</span>{title}
-        </h2>
-        <p className="font-mono text-rpg-textDim text-xs uppercase tracking-wider2 mt-0.5">
-          {subtitle}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function MissionStat({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
-  return (
-    <div
-      className="px-3 py-2 flex items-center gap-2"
-      style={{
-        background: "rgba(13,19,48,0.6)",
-        border: `1px solid ${color}30`,
-      }}
-    >
-      <span style={{ color, flexShrink: 0 }}>{icon}</span>
-      <div>
-        <div className="font-display text-lg leading-none" style={{ color }}>{value}</div>
-        <div className="font-mono text-[10px] uppercase tracking-wider2 text-rpg-textDim mt-0.5">{label}</div>
-      </div>
-    </div>
-  );
-}
-
-function MiniStat({ label, value, warn }: { label: string; value: number; warn?: boolean }) {
-  return (
-    <div
-      className="px-3 py-2"
-      style={{
-        background: warn ? "rgba(255,70,85,0.08)" : "rgba(13,19,48,0.6)",
-        border: `1px solid ${warn ? "rgba(255,70,85,0.4)" : "rgba(61,127,255,0.2)"}`,
-      }}
-    >
-      <div className="font-display text-xl" style={{ color: warn ? "#FF4655" : "#D4DCF0" }}>
-        {value}
-      </div>
-      <div className="font-mono text-[10px] uppercase tracking-wider2 text-rpg-textDim">
-        {label}
-      </div>
-    </div>
-  );
-}
-
-const POSITION_COLORS: Record<number, { bar: string; badge: string; badgeBg: string; badgeBorder: string }> = {
-  1: { bar: "rgba(240,192,48,0.8)",   badge: "#F0C040", badgeBg: "rgba(240,192,48,0.12)",  badgeBorder: "rgba(240,192,48,0.4)"  },
-  2: { bar: "rgba(143,168,200,0.8)",  badge: "#8FA8C8", badgeBg: "rgba(143,168,200,0.10)", badgeBorder: "rgba(143,168,200,0.35)" },
-  3: { bar: "rgba(192,112,48,0.8)",   badge: "#C07030", badgeBg: "rgba(192,112,48,0.10)",  badgeBorder: "rgba(192,112,48,0.35)" },
-};
-
-function RankRow({
-  player,
-  position,
-  maxPoints,
-  bronze,
-  silver,
-  gold,
-}: { player: PlayerStats; position: number; maxPoints: number; bronze: number; silver: number; gold: number }) {
-  const medal: MedalTier = medalForTotal(player.activeDays, bronze, silver, gold);
-  const pct = Math.min(100, (player.rankingPoints / maxPoints) * 100);
-  const colors = POSITION_COLORS[position] ?? {
-    bar: "rgba(61,127,255,0.6)",
-    badge: "#3D7FFF",
-    badgeBg: "rgba(61,127,255,0.08)",
-    badgeBorder: "rgba(61,127,255,0.25)",
-  };
-  const isTop3 = position <= 3;
-
-  return (
-    <div
-      className="relative overflow-hidden flex items-center gap-2.5 sm:gap-4 px-3 sm:px-4 py-3 sm:py-4 transition-all"
-      style={{
-        background: isTop3
-          ? `linear-gradient(135deg, ${colors.badgeBg}, rgba(10,14,32,0.92))`
-          : "rgba(10,14,32,0.85)",
-        border: `1px solid ${isTop3 ? colors.badgeBorder : "rgba(61,127,255,0.12)"}`,
-        backdropFilter: "blur(10px)",
-        clipPath: "polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%)",
-      }}
-    >
-      {/* Top accent line for top 3 */}
-      {isTop3 && (
-        <div
-          className="absolute top-0 left-0 right-0 h-px"
-          style={{ background: `linear-gradient(90deg, transparent, ${colors.badge}, transparent)` }}
-        />
-      )}
-
-      {/* Posição badge */}
-      <div
-        className="font-display text-base sm:text-lg w-7 sm:w-10 text-center shrink-0"
-        style={{
-          color: colors.badge,
-          textShadow: isTop3 ? `0 0 10px ${colors.badge}80` : "none",
-        }}
-      >
-        {position}°
-      </div>
-
-      {/* Escudo (Medal tier) — escondido em telas pequenas para dar espaço ao nome */}
-      <div className="shrink-0 hidden sm:block">
-        <MedalBadge tier={medal} size={32} />
-      </div>
-
-      {/* Avatar */}
-      <div className="shrink-0">
-        <PlayerAvatar name={player.name} url={player.avatarUrl} size={42} rank={position} />
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div
-          className="font-display uppercase tracking-wider2 leading-tight break-words"
-          style={{ fontSize: 13, color: isTop3 ? colors.badge : "#D4DCF0" }}
-        >
-          {player.name}
-        </div>
-        <div className="font-mono text-[10px] text-rpg-textDim mt-0.5">
-          {player.activeDays} dias ativos
-          {player.constancyBonus > 0 && (
-            <span style={{ color: "#A78BFA" }}> · +{player.constancyBonus} bônus</span>
-          )}
-        </div>
-
-        {/* Barra de progresso */}
-        <div
-          className="mt-2 h-1.5 rounded-full overflow-hidden"
-          style={{ background: "rgba(255,255,255,0.05)" }}
-        >
-          <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${pct}%`, background: colors.bar }}
-          />
-        </div>
-      </div>
-
-      {/* Pontuação */}
-      <div className="text-right shrink-0 pl-1 sm:pl-2">
-        <div
-          className="font-display text-xl sm:text-2xl leading-none"
-          style={{
-            color: colors.badge,
-            textShadow: isTop3 ? `0 0 12px ${colors.badge}60` : "none",
-          }}
-        >
-          {player.rankingPoints}
-        </div>
-        <div className="font-mono text-[9px] text-rpg-textDim mt-0.5 uppercase tracking-wider2">
-          pts
-        </div>
-      </div>
-    </div>
   );
 }
