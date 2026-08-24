@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Este projeto é o **Movimento em Jogo** — plataforma de gamificação da equipe Garcez Consultoria (Next.js + Postgres + NextAuth + Tailwind, identidade visual estilo Valorant).
 
+> Para padrões de código, arquitetura e convenções do time, veja [`docs/standards/00-indice.md`](./docs/standards/00-indice.md).
+
 ## Missão do Claude neste repositório
 
 Quando o usuário pedir para **"iniciar"**, **"rodar"**, **"subir"**, **"começar"** ou **"abrir o projeto"**, **você (Claude) é responsável por fazer TUDO sozinho, sem pedir ao usuário para rodar comandos**. Isso inclui:
@@ -52,8 +54,8 @@ O usuário final é **leigo técnico**. Ele só quer ver o site funcionando no n
 - **URL local:** `http://gamificacaogarcezconsultoria.local:3000`
 - **PostgreSQL:** `postgresql://postgres:postgres@localhost:5432/movimento_em_jogo`
 - **Senha padrão dos usuários:** `movimento2026`
-- **Admin:** `garcez@garcez.com`
-- **Outros usuários do seed:** `adv1@garcez.com`, `adv2@garcez.com`, `contador@garcez.com`, `assistente@garcez.com`, `estagio@garcez.com`
+- **Admin:** `garcez@garcez` (Maria Eduarda — **sem** `.com`, confirmado contra `prisma/seed.ts`)
+- **Outros usuários do seed:** `luizhenriquegarcez@gmail.com` (Luiz Garcez), `douglas@luizgarcez.com.br` (Douglas), `cleiton@luizgarcez.com.br` (Cleiton), `kellyadrsz1@gmail.com` (Kelly), `milenna@luizgarcez.com.br` (Milenna) — todos `role: USER`
 
 > O `.env` já está configurado e nunca deve ser recriado do zero — `NEXTAUTH_SECRET` não pode mudar (quebra sessões existentes).
 
@@ -209,7 +211,7 @@ StatusCode 200 → ok.
 
 ### 9. Reportar ao usuário
 
-Avise que o site está aberto em `http://gamificacaogarcezconsultoria.local:3000` e passe o login padrão (`garcez@garcez.com` / `movimento2026`).
+Avise que o site está aberto em `http://gamificacaogarcezconsultoria.local:3000` e passe o login padrão (`garcez@garcez` / `movimento2026`).
 
 ---
 
