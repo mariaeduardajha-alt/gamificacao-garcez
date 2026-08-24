@@ -2,15 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { UserSummarySerialized } from "@/types/domain";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import { Th, Td } from "@/components/table/Table";
 
-interface U {
-  id: string;
-  name: string;
-  email: string;
-  sector: string | null;
-  role: "USER" | "ADMIN";
-  createdAt: string;
-}
+type U = UserSummarySerialized;
 
 export function UsersManager({ initial, currentUserId }: { initial: U[]; currentUserId: string }) {
   const router = useRouter();
@@ -59,14 +55,18 @@ function UserRow({
 }) {
   const [editing, setEditing] = useState(false);
   const isSelf = user.id === currentUserId;
+  const { mutate } = useApiMutation();
 
   if (editing) return <EditUserRow user={user} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); onChanged(); }} />;
 
   async function onDelete() {
     if (!confirm(`Remover ${user.name}? Esta ação não pode ser desfeita.`)) return;
-    const res = await fetch(`/api/users/${user.id}`, { method: "DELETE" });
-    if (res.ok) onChanged();
-    else alert("Falha ao remover");
+    try {
+      await mutate(`/api/users/${user.id}`, undefined, "DELETE");
+      onChanged();
+    } catch {
+      alert("Falha ao remover");
+    }
   }
 
   return (
@@ -102,30 +102,28 @@ function UserRow({
 function NewUserForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const { mutate } = useApiMutation();
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr(null);
     setLoading(true);
     const fd = new FormData(e.currentTarget);
-    const res = await fetch("/api/users", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
+    try {
+      await mutate("/api/users", {
         name: fd.get("name"),
         email: fd.get("email"),
         sector: fd.get("sector"),
         role: fd.get("role"),
         password: fd.get("password")
-      })
-    });
-    setLoading(false);
-    const data = await res.json().catch(() => null);
-    if (!res.ok) {
-      setErr(data?.error === "email_taken" ? "email já cadastrado" : data?.error || "falha");
-      return;
+      });
+      onSaved();
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "falha";
+      setErr(code === "email_taken" ? "email já cadastrado" : code);
+    } finally {
+      setLoading(false);
     }
-    onSaved();
   }
 
   return (
@@ -165,16 +163,18 @@ function EditUserRow({ user, onClose, onSaved }: { user: U; onClose: () => void;
   const [role, setRole] = useState(user.role);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { mutate } = useApiMutation();
 
   async function save() {
     setLoading(true);
-    const res = await fetch(`/api/users/${user.id}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name, sector, role, password: password || undefined })
-    });
-    setLoading(false);
-    if (res.ok) onSaved();
+    try {
+      await mutate(`/api/users/${user.id}`, { name, sector, role, password: password || undefined }, "PATCH");
+      onSaved();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Falha ao salvar agente");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -207,11 +207,4 @@ function EditUserRow({ user, onClose, onSaved }: { user: U; onClose: () => void;
       </Td>
     </tr>
   );
-}
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <th className={`px-4 py-3 text-left font-display uppercase tracking-wider2 text-xs text-val-line ${className || ""}`}>{children}</th>;
-}
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 text-sm align-top ${className || ""}`}>{children}</td>;
 }

@@ -2,20 +2,27 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 export function DeleteAllActivities({ count }: { count: number }) {
   const router  = useRouter();
   const [busy,   setBusy]   = useState(false);
   const [confirm, setConfirm] = useState(false);
+  const { mutate } = useApiMutation();
 
   if (count === 0) return null;
 
   async function handleDeleteAll() {
     setBusy(true);
-    await fetch("/api/activities", { method: "DELETE" });
-    setBusy(false);
-    setConfirm(false);
-    router.refresh();
+    try {
+      await mutate("/api/activities", undefined, "DELETE");
+      setConfirm(false);
+      router.refresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Falha ao excluir atividades");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (

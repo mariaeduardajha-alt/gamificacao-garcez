@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 export function ProfileMenu() {
   const { data, update } = useSession();
@@ -10,6 +11,7 @@ export function ProfileMenu() {
   const [loading,  setLoading]  = useState(false);
   const menuRef    = useRef<HTMLDivElement>(null);
   const fileRef    = useRef<HTMLInputElement>(null);
+  const { mutate } = useApiMutation();
 
   // Fecha ao clicar fora
   useEffect(() => {
@@ -26,23 +28,30 @@ export function ProfileMenu() {
     setLoading(true);
     const fd = new FormData();
     fd.append("avatar", file);
-    const res  = await fetch("/api/profile", { method: "POST", body: fd });
-    const data = await res.json();
-    if (data.ok) {
+    try {
+      const data = await mutate("/api/profile", fd, "POST");
       await update({ avatarUrl: data.avatarUrl });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Falha ao atualizar foto de perfil");
+    } finally {
+      setLoading(false);
+      setOpen(false);
+      e.target.value = "";
     }
-    setLoading(false);
-    setOpen(false);
-    e.target.value = "";
   }
 
   async function handleRemove() {
     if (!confirm("Remover foto de perfil?")) return;
     setLoading(true);
-    await fetch("/api/profile", { method: "DELETE" });
-    await update({ avatarUrl: null });
-    setLoading(false);
-    setOpen(false);
+    try {
+      await mutate("/api/profile", undefined, "DELETE");
+      await update({ avatarUrl: null });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Falha ao remover foto de perfil");
+    } finally {
+      setLoading(false);
+      setOpen(false);
+    }
   }
 
   if (!user) return null;

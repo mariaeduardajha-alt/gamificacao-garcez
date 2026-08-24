@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 export function ActivityActions({
   id,
@@ -14,6 +15,7 @@ export function ActivityActions({
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { mutate } = useApiMutation();
 
   // Fecha o menu ao clicar fora
   useEffect(() => {
@@ -29,9 +31,14 @@ export function ActivityActions({
   async function handleDelete() {
     if (!confirm("Excluir este registro?")) return;
     setDeleting(true);
-    await fetch(`/api/activities/${id}`, { method: "DELETE" });
-    setDeleting(false);
-    router.refresh();
+    try {
+      await mutate(`/api/activities/${id}`, undefined, "DELETE");
+      router.refresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Falha ao excluir registro");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (

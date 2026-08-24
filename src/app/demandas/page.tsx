@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/Navbar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { WEIGHT_COLOR, WEIGHT_LABEL } from "@/lib/scoring";
+import { Th, Td } from "@/components/table/Table";
 
 export const dynamic = "force-dynamic";
 
@@ -84,11 +85,4 @@ export default async function DemandasPage() {
       </main>
     </>
   );
-}
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <th className={`px-4 py-3 text-left font-display uppercase tracking-wider2 text-xs text-val-line ${className || ""}`}>{children}</th>;
-}
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 text-sm ${className || ""}`}>{children}</td>;
 }

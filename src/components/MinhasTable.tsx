@@ -3,31 +3,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ActivityActions } from "./ActivityActions";
+import type { ActivityRecordSerialized } from "@/types/domain";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import { STATUS_META } from "@/lib/status";
+import { Th } from "@/components/table/Table";
 
-interface Activity {
-  id: string;
-  date: string;
-  type: string;
-  durationMin: number | null;
-  status: string;
-  proofUrl: string | null;
-}
-
-const STATUS_COLOR: Record<string, string> = {
-  APPROVED: "#2DD4BF",
-  PENDING:  "#F0C040",
-  REJECTED: "#FF4655",
-};
-const STATUS_LABEL: Record<string, string> = {
-  APPROVED: "Aprovada",
-  PENDING:  "Pendente",
-  REJECTED: "Rejeitada",
-};
+type Activity = ActivityRecordSerialized;
 
 export function MinhasTable({ activities }: { activities: Activity[] }) {
   const router   = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
+  const { mutate } = useApiMutation();
 
   const allChecked  = activities.length > 0 && selected.size === activities.length;
   const someChecked = selected.size > 0 && !allChecked;
@@ -51,12 +38,14 @@ export function MinhasTable({ activities }: { activities: Activity[] }) {
   async function deleteSelected() {
     if (!confirm(`Excluir ${selected.size} registro(s)?`)) return;
     setDeleting(true);
-    await Promise.all(
-      [...selected].map((id) => fetch(`/api/activities/${id}`, { method: "DELETE" }))
+    const results = await Promise.allSettled(
+      [...selected].map((id) => mutate(`/api/activities/${id}`, undefined, "DELETE"))
     );
     setDeleting(false);
     setSelected(new Set());
     router.refresh();
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed > 0) alert(`Falha ao excluir ${failed} registro(s)`);
   }
 
   if (activities.length === 0) {
@@ -124,7 +113,7 @@ export function MinhasTable({ activities }: { activities: Activity[] }) {
           <tbody>
             {activities.map((a) => {
               const isSelected = selected.has(a.id);
-              const color = STATUS_COLOR[a.status] ?? "#D4DCF0";
+              const color = STATUS_META[a.status]?.color ?? "#D4DCF0";
               return (
                 <tr
                   key={a.id}
@@ -148,7 +137,7 @@ export function MinhasTable({ activities }: { activities: Activity[] }) {
                       className="font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5"
                       style={{ color, background: `${color}18`, border: `1px solid ${color}40` }}
                     >
-                      {STATUS_LABEL[a.status] ?? a.status}
+                      {STATUS_META[a.status]?.label ?? a.status}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -165,7 +154,7 @@ export function MinhasTable({ activities }: { activities: Activity[] }) {
       <div className="md:hidden divide-y divide-val-line/10">
         {activities.map((a) => {
           const isSelected = selected.has(a.id);
-          const color = STATUS_COLOR[a.status] ?? "#D4DCF0";
+          const color = STATUS_META[a.status]?.color ?? "#D4DCF0";
           return (
             <div
               key={a.id}
@@ -184,7 +173,7 @@ export function MinhasTable({ activities }: { activities: Activity[] }) {
                     className="font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5 shrink-0"
                     style={{ color, background: `${color}18`, border: `1px solid ${color}40` }}
                   >
-                    {STATUS_LABEL[a.status] ?? a.status}
+                    {STATUS_META[a.status]?.label ?? a.status}
                   </span>
                 </div>
                 <div className="font-mono text-[11px] text-rpg-textDim mt-1">
@@ -232,13 +221,5 @@ function Checkbox({
         </svg>
       )}
     </button>
-  );
-}
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th className={`px-4 py-3 text-left font-display uppercase tracking-wider2 text-xs text-val-line ${className ?? ""}`}>
-      {children}
-    </th>
   );
 }

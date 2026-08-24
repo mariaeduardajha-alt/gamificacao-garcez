@@ -1,5 +1,5 @@
 import type { MedalTier } from "@/lib/scoring";
-import { OrnamentalShield } from "./OrnamentalShield";
+import { MedalBadge } from "./MedalBadge";
 
 const TIER_GLOW: Record<MedalTier, string> = {
   GOLD:   "radial-gradient(circle at 30% 20%, rgba(240,192,48,0.18), transparent 60%)",
@@ -74,7 +74,7 @@ export function MedalGauge({
             tier === "BRONZE" ? "animate-glow-bronze animate-float" :
                                 "animate-float"
           }>
-            <OrnamentalShield tier={tier} size={110} />
+            <MedalBadge tier={tier} size={110} />
           </div>
 
           {/* ── Pedestal volumétrico ── */}

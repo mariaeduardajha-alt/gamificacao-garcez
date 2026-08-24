@@ -2,23 +2,11 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { ActivityWithUserSerialized } from "@/types/domain";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import { STATUS_META } from "@/lib/status";
 
-interface Item {
-  id: string;
-  date: string;
-  type: string;
-  durationMin: number | null;
-  notes: string | null;
-  proofUrl: string | null;
-  status: string;
-  user: { name: string; email: string };
-}
-
-const STATUS_STYLE: Record<string, { label: string; color: string }> = {
-  APPROVED: { label: "Aprovada", color: "#2DD4BF" },
-  PENDING:  { label: "Pendente", color: "#F0C040" },
-  REJECTED: { label: "Rejeitada", color: "#FF4655" },
-};
+type Item = ActivityWithUserSerialized;
 
 const PAGE_SIZE = 3;
 
@@ -28,13 +16,19 @@ export function AllActivitiesHistory({ items }: { items: Item[] }) {
   const [filter,    setFilter]    = useState("");
   const [expanded,  setExpanded]  = useState(false);
   const [openNotes, setOpenNotes] = useState<string | null>(null);
+  const { mutate } = useApiMutation();
 
   async function handleDelete(id: string) {
     if (!confirm("Excluir este registro?")) return;
     setBusy(id);
-    await fetch(`/api/activities/${id}`, { method: "DELETE" });
-    setBusy(null);
-    router.refresh();
+    try {
+      await mutate(`/api/activities/${id}`, undefined, "DELETE");
+      router.refresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Falha ao excluir registro");
+    } finally {
+      setBusy(null);
+    }
   }
 
   const filtered = filter.trim()
@@ -106,7 +100,7 @@ export function AllActivitiesHistory({ items }: { items: Item[] }) {
             </thead>
             <tbody>
               {visible.map((it) => {
-                const st       = STATUS_STYLE[it.status] ?? { label: it.status, color: "#D4DCF0" };
+                const st       = STATUS_META[it.status] ?? { label: it.status, color: "#D4DCF0" };
                 const isOpen   = openNotes === it.id;
                 const hasNotes = !!it.notes?.trim();
 
@@ -220,7 +214,7 @@ export function AllActivitiesHistory({ items }: { items: Item[] }) {
           {/* ── Mobile: lista de cards ── */}
           <div className="md:hidden divide-y divide-val-line/10">
             {visible.map((it) => {
-              const st       = STATUS_STYLE[it.status] ?? { label: it.status, color: "#D4DCF0" };
+              const st       = STATUS_META[it.status] ?? { label: it.status, color: "#D4DCF0" };
               const isOpen   = openNotes === it.id;
               const hasNotes = !!it.notes?.trim();
               return (

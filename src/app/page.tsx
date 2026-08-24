@@ -6,7 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { MedalGauge } from "@/components/MedalGauge";
 import { PodiumShield } from "@/components/PodiumShield";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
-import { Shield } from "@/components/Shield";
+import { MedalBadge } from "@/components/MedalBadge";
 import { medalForTotal, rankWithTies, type PlayerStats, type MedalTier } from "@/lib/scoring";
 import { BonusSound } from "@/components/BonusSound";
 import { ScoreAnimation } from "@/components/ScoreAnimation";
@@ -379,7 +379,7 @@ function RankRow({
 
       {/* Escudo (Medal tier) — escondido em telas pequenas para dar espaço ao nome */}
       <div className="shrink-0 hidden sm:block">
-        <Shield tier={medal} size={32} />
+        <MedalBadge tier={medal} size={32} />
       </div>
 
       {/* Avatar */}

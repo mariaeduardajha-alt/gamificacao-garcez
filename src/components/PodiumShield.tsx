@@ -1,16 +1,15 @@
 "use client";
 
 import type { PlayerStats } from "@/lib/scoring";
+import { MEDAL_PALETTE } from "./MedalBadge";
 
 // ── Paleta por posição ──────────────────────────────────────────────────
-const TIER = {
+// c1/c2/c3/gem/ring/glow vêm de `MEDAL_PALETTE` (1°=GOLD, 2°=SILVER,
+// 3°=BRONZE — valores idênticos aos que já eram copiados aqui manualmente).
+// Os campos abaixo são específicos da apresentação do pódio (não fazem
+// parte do conceito de "medalha" em si).
+const POSITION_EXTRAS = {
   1: {
-    c1: "#F0C040", c2: "#C8960C", c3: "#8A6600",
-    gem: "#FFF0A0", ring: "#F0C040",
-    glow: "drop-shadow(0 0 12px rgba(240,192,48,0.8)) drop-shadow(0 0 30px rgba(240,192,48,0.35))",
-    bgFill: "url(#gold-bg)",
-    borderStroke: "#F0C040",
-    innerStroke: "#C8960C",
     label: "#FFE066",
     anim: "animate-glow-gold animate-float",
     posLabel: "1°",
@@ -19,12 +18,6 @@ const TIER = {
     platformBorder: "#F0C040",
   },
   2: {
-    c1: "#C8D8E8", c2: "#8FA8C8", c3: "#4A6890",
-    gem: "#EAEFFF", ring: "#8FA8C8",
-    glow: "drop-shadow(0 0 8px rgba(143,168,200,0.6)) drop-shadow(0 0 22px rgba(143,168,200,0.25))",
-    bgFill: "url(#silver-bg)",
-    borderStroke: "#8FA8C8",
-    innerStroke: "#4A6890",
     label: "#C8D8E8",
     anim: "animate-glow-silver",
     posLabel: "2°",
@@ -33,12 +26,6 @@ const TIER = {
     platformBorder: "#8FA8C8",
   },
   3: {
-    c1: "#E8A060", c2: "#C07030", c3: "#804820",
-    gem: "#FFD090", ring: "#C07030",
-    glow: "drop-shadow(0 0 8px rgba(192,112,48,0.6)) drop-shadow(0 0 20px rgba(192,112,48,0.22))",
-    bgFill: "url(#bronze-bg)",
-    borderStroke: "#C07030",
-    innerStroke: "#804820",
     label: "#E8A060",
     anim: "animate-glow-bronze",
     posLabel: "3°",
@@ -46,6 +33,12 @@ const TIER = {
     platformColor: "#0A0700",
     platformBorder: "#C07030",
   },
+} as const;
+
+const TIER = {
+  1: { ...MEDAL_PALETTE.GOLD, ...POSITION_EXTRAS[1] },
+  2: { ...MEDAL_PALETTE.SILVER, ...POSITION_EXTRAS[2] },
+  3: { ...MEDAL_PALETTE.BRONZE, ...POSITION_EXTRAS[3] },
 } as const;
 
 // ── SVG Shield (viewBox 0 0 200 265) ───────────────────────────────────
