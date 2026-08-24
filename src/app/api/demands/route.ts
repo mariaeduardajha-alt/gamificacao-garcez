@@ -1,34 +1,37 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { saveProof } from "@/lib/storage";
 import { WEIGHT_POINTS } from "@/lib/scoring";
-import { DemandWeight } from "@prisma/client";
+import { requireAuth } from "@/lib/api-auth";
+import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
+import { createDemandSchema } from "@/lib/schemas";
+import { MAX_PROOF_SIZE_BYTES } from "@/lib/constants";
 
 export const runtime = "nodejs";
 
-const validWeights = new Set<DemandWeight>(["SMALL", "MEDIUM", "LARGE", "EPIC"]);
-
-export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export const POST = withApiHandler(async (req: NextRequest) => {
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.response;
+  const { session } = authResult;
 
   const form = await req.formData();
-  const title = (form.get("title") as string)?.trim();
-  const client = ((form.get("client") as string) || "").trim() || null;
-  const weight = form.get("weight") as DemandWeight;
-  const completedAt = form.get("completedAt") as string;
-  const notes = ((form.get("notes") as string) || "").trim() || null;
+  const parsed = createDemandSchema.safeParse({
+    title: form.get("title"),
+    client: form.get("client") || undefined,
+    weight: form.get("weight"),
+    completedAt: form.get("completedAt"),
+    notes: form.get("notes") || undefined,
+  });
+  if (!parsed.success) return apiError("invalid_input");
+  const { title, weight, completedAt } = parsed.data;
+  const client = parsed.data.client || null;
+  const notes = parsed.data.notes || null;
+
   const file = form.get("proof") as File | null;
-
-  if (!title || !validWeights.has(weight) || !completedAt) {
-    return NextResponse.json({ error: "invalid_input" }, { status: 400 });
-  }
-
   let proofUrl: string | null = null;
   if (file && file.size > 0) {
-    if (file.size > 8 * 1024 * 1024) {
-      return NextResponse.json({ error: "file_too_large" }, { status: 400 });
+    if (file.size > MAX_PROOF_SIZE_BYTES) {
+      return apiError("file_too_large");
     }
     proofUrl = await saveProof(session.user.id, file);
   }
@@ -40,23 +43,23 @@ export async function POST(req: NextRequest) {
       client,
       weight,
       points: WEIGHT_POINTS[weight],
-      completedAt: new Date(completedAt),
+      completedAt,
       proofUrl,
       notes,
-      status: "PENDING"
-    }
+      status: "PENDING",
+    },
   });
 
-  return NextResponse.json({ ok: true, id: demand.id });
-}
+  return apiSuccess({ ok: true, id: demand.id });
+});
 
-export async function GET() {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export const GET = withApiHandler(async () => {
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.response;
 
   const items = await prisma.demand.findMany({
-    where: { userId: session.user.id },
-    orderBy: { completedAt: "desc" }
+    where: { userId: authResult.session.user.id },
+    orderBy: { completedAt: "desc" },
   });
-  return NextResponse.json({ items });
-}
+  return apiSuccess({ items });
+});

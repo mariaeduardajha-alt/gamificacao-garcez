@@ -1,24 +1,25 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/api-auth";
+import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export const DELETE = withApiHandler(
+  async (_req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    const authResult = await requireAuth();
+    if (!authResult.ok) return authResult.response;
+    const { session } = authResult;
 
-  const { id } = await params;
+    const { id } = await params;
 
-  const activity = await prisma.activity.findUnique({ where: { id } });
-  if (!activity) return NextResponse.json({ error: "not_found" }, { status: 404 });
+    const activity = await prisma.activity.findUnique({ where: { id } });
+    if (!activity) return apiError("not_found");
 
-  // Só o próprio usuário pode excluir (ou admin)
-  if (activity.userId !== session.user.id && session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    // Só o próprio usuário pode excluir (ou admin)
+    if (activity.userId !== session.user.id && session.user.role !== "ADMIN") {
+      return apiError("forbidden");
+    }
+
+    await prisma.activity.delete({ where: { id } });
+    return apiSuccess({ ok: true });
   }
-
-  await prisma.activity.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
-}
+);

@@ -1,39 +1,42 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { saveProof } from "@/lib/storage";
+import { requireAuth } from "@/lib/api-auth";
+import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
+import { MAX_AVATAR_SIZE_BYTES } from "@/lib/constants";
 
 export const runtime = "nodejs";
 
 // Atualiza foto de perfil
-export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export const POST = withApiHandler(async (req: NextRequest) => {
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.response;
+  const { session } = authResult;
 
   const form = await req.formData();
   const file = form.get("avatar") as File | null;
-  if (!file || file.size === 0) return NextResponse.json({ error: "no_file" }, { status: 400 });
-  if (file.size > 5 * 1024 * 1024) return NextResponse.json({ error: "file_too_large" }, { status: 400 });
+  if (!file || file.size === 0) return apiError("no_file");
+  if (file.size > MAX_AVATAR_SIZE_BYTES) return apiError("file_too_large");
 
-  const avatarUrl = await saveProof((session.user as any).id, file);
+  const avatarUrl = await saveProof(session.user.id, file);
 
   await prisma.user.update({
-    where: { id: (session.user as any).id },
-    data: { avatarUrl }
+    where: { id: session.user.id },
+    data: { avatarUrl },
   });
 
-  return NextResponse.json({ ok: true, avatarUrl });
-}
+  return apiSuccess({ ok: true, avatarUrl });
+});
 
 // Remove foto de perfil
-export async function DELETE() {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export const DELETE = withApiHandler(async () => {
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.response;
 
   await prisma.user.update({
-    where: { id: (session.user as any).id },
-    data: { avatarUrl: null }
+    where: { id: authResult.session.user.id },
+    data: { avatarUrl: null },
   });
 
-  return NextResponse.json({ ok: true, avatarUrl: null });
-}
+  return apiSuccess({ ok: true, avatarUrl: null });
+});

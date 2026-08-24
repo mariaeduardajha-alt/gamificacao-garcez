@@ -1,16 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
-import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
+import { requireAdmin } from "@/lib/api-auth";
+import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
-  }
+export const POST = withApiHandler(async (req: NextRequest) => {
+  const authResult = await requireAdmin();
+  if (!authResult.ok) return authResult.response;
 
   const body = await req.json();
   const name = (body.name as string)?.trim();
@@ -20,28 +19,27 @@ export async function POST(req: NextRequest) {
   const password = (body.password as string) || "";
 
   if (!name || !email || password.length < 6) {
-    return NextResponse.json({ error: "invalid_input" }, { status: 400 });
+    return apiError("invalid_input");
   }
 
   const exists = await prisma.user.findUnique({ where: { email } });
-  if (exists) return NextResponse.json({ error: "email_taken" }, { status: 409 });
+  if (exists) return apiError("email_taken");
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { name, email, sector, role, passwordHash }
+    data: { name, email, sector, role, passwordHash },
   });
 
-  return NextResponse.json({ ok: true, id: user.id });
-}
+  return apiSuccess({ ok: true, id: user.id });
+});
 
-export async function GET() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
-  }
+export const GET = withApiHandler(async () => {
+  const authResult = await requireAdmin();
+  if (!authResult.ok) return authResult.response;
+
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "asc" },
-    select: { id: true, name: true, email: true, sector: true, role: true, createdAt: true }
+    select: { id: true, name: true, email: true, sector: true, role: true, createdAt: true },
   });
-  return NextResponse.json({ users });
-}
+  return apiSuccess({ users });
+});
