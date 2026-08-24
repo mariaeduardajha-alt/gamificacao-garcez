@@ -1,7 +1,6 @@
 import { prisma } from "./prisma";
 import {
   computePlayerStats,
-  computeActiveDaysStats,
   medalForTotal,
   compareRank,
   type PlayerStats,
@@ -98,22 +97,9 @@ export interface ChallengeSnapshot {
   // ── METAS DOS SETORES ──
   sectorGoals: SectorGoalData[];
 
-  // ── Legado (admin / registrar) ──
+  // ── Usado pelo HUB pra achar as stats do jogador logado ──
   players: PlayerStats[];
-  rankFitness: PlayerStats[];
-  rankConstancy: PlayerStats[];
-  rankDemands: PlayerStats[];
-  rankOverall: PlayerStats[];
-  totalKcal: number;
-  fitnessMedal: MedalTier;
-  fitnessNext: { target: number; label: string } | null;
-  totalDemandPoints: number;
-  demandsMedal: MedalTier;
-  demandsNext: { target: number; label: string } | null;
-  approvedActivities: number;
-  pendingActivities: number;
-  approvedDemands: number;
-  pendingDemands: number;
+
   daysLeft: number;
   daysTotal: number;
 }
@@ -129,21 +115,12 @@ export async function buildSnapshot(): Promise<ChallengeSnapshot> {
           status: "APPROVED",
           date: { gte: challenge.startDate, lte: challenge.endDate }
         },
-        select: { date: true, kcal: true, durationMin: true }
-      },
-      demands: {
-        where: {
-          status: "APPROVED",
-          completedAt: { gte: challenge.startDate, lte: challenge.endDate }
-        },
-        select: { points: true, weight: true }
+        select: { date: true, durationMin: true }
       }
     }
   });
 
-  const players = users.map((u) =>
-    computePlayerStats(u, u.activities, u.demands)
-  );
+  const players = users.map((u) => computePlayerStats(u, u.activities));
 
   // ── Ranking individual: pontuação → dias ativos → semanas com meta → tempo total ──
   const rankActiveDays = [...players].sort(compareRank);
@@ -208,34 +185,6 @@ export async function buildSnapshot(): Promise<ChallengeSnapshot> {
     };
   });
 
-  // ── Legado ──
-  const totalKcal = players.reduce((s, p) => s + p.totalKcal, 0);
-  const fitnessMedal = medalForTotal(totalKcal, challenge.bronzeKcal, challenge.silverKcal, challenge.goldKcal);
-  const fitnessNext =
-    totalKcal < challenge.bronzeKcal ? { target: challenge.bronzeKcal, label: "BRONZE" } :
-    totalKcal < challenge.silverKcal ? { target: challenge.silverKcal, label: "PRATA" } :
-    totalKcal < challenge.goldKcal   ? { target: challenge.goldKcal,   label: "OURO" } : null;
-
-  const totalDemandPoints = players.reduce((s, p) => s + p.demandsPoints, 0);
-  const demandsMedal = medalForTotal(totalDemandPoints, challenge.bronzePoints, challenge.silverPoints, challenge.goldPoints);
-  const demandsNext =
-    totalDemandPoints < challenge.bronzePoints ? { target: challenge.bronzePoints, label: "BRONZE" } :
-    totalDemandPoints < challenge.silverPoints ? { target: challenge.silverPoints, label: "PRATA" } :
-    totalDemandPoints < challenge.goldPoints   ? { target: challenge.goldPoints,   label: "OURO" } : null;
-
-  const rankFitness   = [...players].sort((a, b) => b.fitnessPoints - a.fitnessPoints);
-  const rankConstancy = [...players].sort((a, b) => b.activeDays - a.activeDays || b.constancyBonus - a.constancyBonus);
-  const rankDemands   = [...players].sort((a, b) => b.demandsPoints - a.demandsPoints);
-  const rankOverall   = [...players].sort((a, b) => b.totalPoints - a.totalPoints);
-
-  const [approvedActivities, pendingActivities, approvedDemands, pendingDemands] =
-    await Promise.all([
-      prisma.activity.count({ where: { status: "APPROVED", date: { gte: challenge.startDate, lte: challenge.endDate } } }),
-      prisma.activity.count({ where: { status: "PENDING" } }),
-      prisma.demand.count({ where: { status: "APPROVED", completedAt: { gte: challenge.startDate, lte: challenge.endDate } } }),
-      prisma.demand.count({ where: { status: "PENDING" } })
-    ]);
-
   const daysTotal = Math.ceil(
     (challenge.endDate.getTime() - challenge.startDate.getTime()) / 86400000
   );
@@ -251,20 +200,6 @@ export async function buildSnapshot(): Promise<ChallengeSnapshot> {
     rankActiveDays,
     sectorGoals,
     players,
-    rankFitness,
-    rankConstancy,
-    rankDemands,
-    rankOverall,
-    totalKcal,
-    fitnessMedal,
-    fitnessNext,
-    totalDemandPoints,
-    demandsMedal,
-    demandsNext,
-    approvedActivities,
-    pendingActivities,
-    approvedDemands,
-    pendingDemands,
     daysLeft,
     daysTotal
   };

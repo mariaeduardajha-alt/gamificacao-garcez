@@ -1,16 +1,4 @@
-import type { Activity, Demand, DemandWeight } from "@prisma/client";
-
-// ========== EXERCICIOS ==========
-export const kcalToPoints = (kcal: number) => kcal;
-
-/** Legado – mantido para compatibilidade com admin/histórico */
-export function weeklyConstancyBonus(activeDays: number): number {
-  if (activeDays >= 5) return 120;
-  if (activeDays === 4) return 80;
-  if (activeDays === 3) return 50;
-  if (activeDays === 2) return 20;
-  return 0;
-}
+import type { Activity, DemandWeight } from "@prisma/client";
 
 export type MedalTier = "NONE" | "BRONZE" | "SILVER" | "GOLD";
 
@@ -165,71 +153,30 @@ export interface PlayerStats {
   sector: string | null;
   avatarUrl: string | null;
 
-  // Fitness (legado – registrar/admin)
-  totalKcal: number;
-  activitiesCount: number;
-
   // Movimento em Jogo – dias ativos
   activeDays: number;
   weeksHitGoal: number;
   constancyBonus: number;
   rankingPoints: number; // activeDays × 10 + constancyBonus
   totalMinutes: number;  // tempo total de atividades validadas (desempate)
-
-  // Legado (mantido para não quebrar admin)
-  fitnessPoints: number;
-  demandsPoints: number;
-  demandsCount: number;
-  epicCount: number;
-  totalPoints: number;
 }
 
 export function computePlayerStats(
   user: { id: string; name: string; sector: string | null; avatarUrl: string | null },
-  activities: Pick<Activity, "date" | "kcal" | "durationMin">[],
-  demands: Pick<Demand, "points" | "weight">[]
+  activities: Pick<Activity, "date" | "durationMin">[]
 ): PlayerStats {
-  const totalKcal = activities.reduce((s, a) => s + a.kcal, 0);
   const totalMinutes = activities.reduce((s, a) => s + (a.durationMin || 0), 0);
-
-  // Nova lógica: dias ativos via duração
   const adStats = computeActiveDaysStats(activities);
-
-  // Legado
-  const dayKeys = new Set(activities.map((a) => a.date.toISOString().slice(0, 10)));
-
-  // Bonus legado por semana (mantido para compatibilidade)
-  const perWeek = new Map<string, Set<string>>();
-  for (const a of activities) {
-    const wk = isoWeekKey(a.date);
-    if (!perWeek.has(wk)) perWeek.set(wk, new Set());
-    perWeek.get(wk)!.add(a.date.toISOString().slice(0, 10));
-  }
-  let legacyBonus = 0;
-  for (const days of perWeek.values()) legacyBonus += weeklyConstancyBonus(days.size);
-
-  const fitnessPoints = kcalToPoints(totalKcal) + legacyBonus;
-  const demandsPoints = demands.reduce((s, d) => s + d.points, 0);
-  const epicCount = demands.filter((d) => d.weight === "EPIC").length;
 
   return {
     userId: user.id,
     name: user.name,
     sector: user.sector,
     avatarUrl: user.avatarUrl,
-    totalKcal,
-    activitiesCount: activities.length,
-    // Novo
     activeDays: adStats.activeDays,
     weeksHitGoal: adStats.weeksHitGoal,
     constancyBonus: adStats.constancyBonus,
     rankingPoints: adStats.rankingPoints,
     totalMinutes,
-    // Legado
-    fitnessPoints,
-    demandsPoints,
-    demandsCount: demands.length,
-    epicCount,
-    totalPoints: fitnessPoints + demandsPoints
   };
 }
