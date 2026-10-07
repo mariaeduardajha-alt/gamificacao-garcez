@@ -1,30 +1,50 @@
 import { z } from "zod";
-import { ActivityType, DemandWeight } from "@prisma/client";
+import { ActivityType, DemandWeight, Role } from "@prisma/client";
 
 /**
- * Validação do formulário (multipart) de criação de atividade.
- * `date` é validado como string não-vazia aqui — a rota reconstrói a Date
- * real a partir da string crua (meio-dia UTC) para não deslocar o dia por
- * fuso horário; não usamos `z.coerce.date()` para não perder essa string.
+ * Validação dos dados recebidos pelas rotas de API.
+ *
+ * Datas chegam do <input type="date"> como "AAAA-MM-DD" e são mantidas como
+ * string aqui: a rota converte com `dateFromInput` (meio-dia UTC) para não
+ * deslocar o dia por fuso horário.
  */
+const inputDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const optionalText = z.string().trim().optional();
+
 export const createActivitySchema = z.object({
-  date: z.string().min(1),
+  date: inputDate,
   type: z.nativeEnum(ActivityType),
-  durationMin: z.coerce.number().positive(),
-  // Sem `.trim()` aqui: a rota original de atividades não aparava as notas
-  // (diferente da de demandas, que sempre fez `.trim()`) — mantido como era.
-  notes: z.string().optional(),
+  durationMin: z.coerce.number().int().positive(),
+  notes: optionalText,
 });
 
 export const createDemandSchema = z.object({
   title: z.string().trim().min(1),
-  client: z.string().trim().optional(),
+  client: optionalText,
   weight: z.nativeEnum(DemandWeight),
-  completedAt: z.coerce.date(),
-  notes: z.string().trim().optional(),
+  completedAt: inputDate,
+  notes: optionalText,
 });
 
 export const reviewActionSchema = z.object({
   action: z.enum(["APPROVE", "REJECT"]),
   note: z.string().optional(),
+  weight: z.nativeEnum(DemandWeight).optional(),
+});
+
+const MIN_PASSWORD_LENGTH = 6;
+
+export const createUserSchema = z.object({
+  name: z.string().trim().min(1),
+  email: z.string().trim().toLowerCase().min(1),
+  sector: optionalText,
+  role: z.nativeEnum(Role).default(Role.USER),
+  password: z.string().min(MIN_PASSWORD_LENGTH),
+});
+
+export const updateUserSchema = z.object({
+  name: z.string().trim().min(1).optional(),
+  sector: z.string().trim().optional(),
+  role: z.nativeEnum(Role).optional(),
+  password: z.string().min(MIN_PASSWORD_LENGTH).optional(),
 });

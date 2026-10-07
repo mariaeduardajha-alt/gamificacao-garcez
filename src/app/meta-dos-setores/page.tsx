@@ -1,14 +1,15 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireSession } from "@/lib/auth";
 import { buildSnapshot } from "@/lib/challenge";
+import { TIER_COLOR } from "@/lib/tiers";
+import { formatMonthRange } from "@/lib/format";
 import { Navbar } from "@/components/Navbar";
+import { SectionHeader } from "@/components/SectionHeader";
 import { SectorGoalCard } from "@/components/SectorGoalCard";
 
 export const dynamic = "force-dynamic";
 
 export default async function MetaDoSetoresPage() {
-  const session = await auth();
-  if (!session) redirect("/login");
+  await requireSession();
 
   const s = await buildSnapshot();
 
@@ -34,36 +35,28 @@ export default async function MetaDoSetoresPage() {
               Indicadores individuais · Garcez Consultoria Jurídica
             </div>
             <h1
-              className="val-heading mt-1"
+              className="val-heading mt-1 text-gradient"
               style={{
                 fontSize: "clamp(1.8rem, 4vw, 3rem)",
-                background: "linear-gradient(135deg, #D4DCF0 30%, #C9A84C 70%, #F0C040 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
+                backgroundImage: "linear-gradient(135deg, #D4DCF0 30%, #C9A84C 70%, #F0C040 100%)",
               }}
             >
               Meta dos Setores
             </h1>
             <p className="font-mono text-rpg-textDim text-xs uppercase tracking-wider2 mt-1">
-              Jun–Jul 2026 · Desempenho por área
+              {formatMonthRange(s.challenge.startDate, s.challenge.endDate)} · Desempenho por área
             </p>
           </div>
         </section>
 
         {/* Cards dos setores */}
         <section>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-1 h-8 rounded-full" style={{ background: "#C9A84C" }} />
-            <div>
-              <h2 className="val-heading text-2xl md:text-3xl">
-                <span className="mr-2 text-xl">🛡</span>Metas por Setor
-              </h2>
-              <p className="font-mono text-rpg-textDim text-xs uppercase tracking-wider2 mt-0.5">
-                Indicadores individuais · Bronze / Prata / Ouro
-              </p>
-            </div>
-          </div>
+          <SectionHeader
+            icon="🛡"
+            title="Metas por Setor"
+            subtitle="Indicadores individuais · Bronze / Prata / Ouro"
+            color="#C9A84C"
+          />
 
           {s.sectorGoals.length === 0 ? (
             <div className="val-card text-center font-mono text-rpg-textDim text-sm py-12">
@@ -80,12 +73,10 @@ export default async function MetaDoSetoresPage() {
 
         {/* Legenda */}
         <section>
-          <div
-            className="font-mono text-[10px] uppercase tracking-wider2 text-rpg-textDim text-center py-4 space-x-6"
-          >
-            <span style={{ color: "#C07030" }}>◆ Bronze = meta mínima</span>
-            <span style={{ color: "#8FA8C8" }}>◆ Prata = meta intermediária</span>
-            <span style={{ color: "#F0C040" }}>◆ Ouro = meta máxima</span>
+          <div className="font-mono text-[10px] uppercase tracking-wider2 text-rpg-textDim text-center py-4 space-x-6">
+            <span style={{ color: TIER_COLOR.BRONZE }}>◆ Bronze = meta mínima</span>
+            <span style={{ color: TIER_COLOR.SILVER }}>◆ Prata = meta intermediária</span>
+            <span style={{ color: TIER_COLOR.GOLD }}>◆ Ouro = meta máxima</span>
           </div>
         </section>
 

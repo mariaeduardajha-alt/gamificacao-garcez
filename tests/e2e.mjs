@@ -1,9 +1,10 @@
 import { chromium } from "playwright";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
+import { tmpdir } from "os";
 import { fileURLToPath } from "url";
 
-const BASE = process.env.BASE_URL || "http://localhost:3003";
+const BASE = process.env.BASE_URL || "http://localhost:3000";
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const SHOTS = join(ROOT, "screenshots");
 mkdirSync(SHOTS, { recursive: true });
@@ -32,7 +33,7 @@ const PNG_1x1 = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
   "base64"
 );
-const TMP_IMG = join(ROOT, "fake-proof.png");
+const TMP_IMG = join(tmpdir(), "movimento-e2e-proof.png");
 writeFileSync(TMP_IMG, PNG_1x1);
 
 async function login(page, user) {
@@ -220,6 +221,17 @@ async function main() {
       await shot(page, "08-hub-final");
     } catch (e) {
       step("HUB final", false, e.message);
+    }
+
+    // -------- 11. LIMPEZA: remove o agente de teste (e, em cascata, seus registros) --------
+    try {
+      await page.goto(`${BASE}/admin/usuarios`);
+      page.once("dialog", (d) => d.accept());
+      await page.locator(`tr:has-text("${NEW_USER.email}")`).getByRole("button", { name: "Remover" }).click();
+      await page.waitForSelector(`td:has-text("${NEW_USER.email}")`, { state: "detached", timeout: 5000 });
+      step("Limpeza: agente de teste removido", true);
+    } catch (e) {
+      step("Limpeza: agente de teste removido", false, e.message);
     }
   } finally {
     await ctx.close();

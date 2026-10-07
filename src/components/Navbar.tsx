@@ -18,7 +18,7 @@ const base = [
 export function Navbar() {
   const { data } = useSession();
   const pathname  = usePathname();
-  const role      = (data?.user as any)?.role;
+  const role      = data?.user.role;
   const items     = role === "ADMIN" ? [...base, { href: "/admin", label: "Admin" }] : base;
   const [menuOpen, setMenuOpen] = useState(false);
 

@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/Navbar";
 import { UsersManager } from "./UsersManager";
@@ -7,9 +6,7 @@ import { UsersManager } from "./UsersManager";
 export const dynamic = "force-dynamic";
 
 export default async function UsuariosPage() {
-  const session = await auth();
-  if (!session) redirect("/login");
-  if (session.user.role !== "ADMIN") redirect("/");
+  const session = await requireAdminSession();
 
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "asc" },

@@ -1,77 +1,66 @@
-import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { Avatar } from "@/components/Avatar";
 import { MedalBadge } from "@/components/MedalBadge";
-import { medalForTotal, type PlayerStats, type MedalTier } from "@/lib/scoring";
+import { tierForValue, type PlayerStats } from "@/lib/scoring";
+import { TIER_COLOR, PODIUM_TIER } from "@/lib/tiers";
+import type { IndividualGoal } from "@/lib/challenge";
 
-const POSITION_COLORS: Record<number, { bar: string; badge: string; badgeBg: string; badgeBorder: string }> = {
-  1: { bar: "rgba(240,192,48,0.8)",   badge: "#F0C040", badgeBg: "rgba(240,192,48,0.12)",  badgeBorder: "rgba(240,192,48,0.4)"  },
-  2: { bar: "rgba(143,168,200,0.8)",  badge: "#8FA8C8", badgeBg: "rgba(143,168,200,0.10)", badgeBorder: "rgba(143,168,200,0.35)" },
-  3: { bar: "rgba(192,112,48,0.8)",   badge: "#C07030", badgeBg: "rgba(192,112,48,0.10)",  badgeBorder: "rgba(192,112,48,0.35)" },
-};
+const DEFAULT_COLOR = "#3D7FFF";
 
+/** Linha da classificação completa: posição, escudo individual, foto, dias e pontos. */
 export function RankRow({
   player,
   position,
   maxPoints,
-  bronze,
-  silver,
-  gold,
-}: { player: PlayerStats; position: number; maxPoints: number; bronze: number; silver: number; gold: number }) {
-  const medal: MedalTier = medalForTotal(player.activeDays, bronze, silver, gold);
+  goal,
+}: { player: PlayerStats; position: number; maxPoints: number; goal: IndividualGoal }) {
+  const medal = tierForValue(player.activeDays, goal.bronze, goal.silver, goal.gold);
   const pct = Math.min(100, (player.rankingPoints / maxPoints) * 100);
-  const colors = POSITION_COLORS[position] ?? {
-    bar: "rgba(61,127,255,0.6)",
-    badge: "#3D7FFF",
-    badgeBg: "rgba(61,127,255,0.08)",
-    badgeBorder: "rgba(61,127,255,0.25)",
-  };
   const isTop3 = position <= 3;
+  const color = isTop3 ? TIER_COLOR[PODIUM_TIER[position as 1 | 2 | 3]] : DEFAULT_COLOR;
 
   return (
     <div
-      className="relative overflow-hidden flex items-center gap-2.5 sm:gap-4 px-3 sm:px-4 py-3 sm:py-4 transition-all"
+      className="relative overflow-hidden flex items-center gap-2.5 sm:gap-4 px-3 sm:px-4 py-3 sm:py-4 transition-all clip-notch-sm"
       style={{
-        background: isTop3
-          ? `linear-gradient(135deg, ${colors.badgeBg}, rgba(10,14,32,0.92))`
-          : "rgba(10,14,32,0.85)",
-        border: `1px solid ${isTop3 ? colors.badgeBorder : "rgba(61,127,255,0.12)"}`,
+        background: isTop3 ? `linear-gradient(135deg, ${color}1C, rgba(10,14,32,0.92))` : "rgba(10,14,32,0.85)",
+        border: `1px solid ${isTop3 ? `${color}66` : "rgba(61,127,255,0.12)"}`,
         backdropFilter: "blur(10px)",
-        clipPath: "polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%)",
       }}
     >
-      {/* Top accent line for top 3 */}
       {isTop3 && (
         <div
           className="absolute top-0 left-0 right-0 h-px"
-          style={{ background: `linear-gradient(90deg, transparent, ${colors.badge}, transparent)` }}
+          style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
         />
       )}
 
-      {/* Posição badge */}
+      {/* Posição */}
       <div
         className="font-display text-base sm:text-lg w-7 sm:w-10 text-center shrink-0"
-        style={{
-          color: colors.badge,
-          textShadow: isTop3 ? `0 0 10px ${colors.badge}80` : "none",
-        }}
+        style={{ color, textShadow: isTop3 ? `0 0 10px ${color}80` : "none" }}
       >
         {position}°
       </div>
 
-      {/* Escudo (Medal tier) — escondido em telas pequenas para dar espaço ao nome */}
+      {/* Escudo individual — escondido em telas pequenas para dar espaço ao nome */}
       <div className="shrink-0 hidden sm:block">
         <MedalBadge tier={medal} size={32} />
       </div>
 
-      {/* Avatar */}
-      <div className="shrink-0">
-        <PlayerAvatar name={player.name} url={player.avatarUrl} size={42} rank={position} />
-      </div>
+      <Avatar
+        name={player.name}
+        url={player.avatarUrl}
+        size={42}
+        shape="notch"
+        className={`border-2 ${position === 1 ? "shadow-[0_0_12px_rgba(228,200,110,0.6)]" : ""}`}
+        style={{ borderColor: isTop3 ? color : "rgba(30,46,85,0.4)" }}
+      />
 
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div
           className="font-display uppercase tracking-wider2 leading-tight break-words"
-          style={{ fontSize: 13, color: isTop3 ? colors.badge : "#D4DCF0" }}
+          style={{ fontSize: 13, color: isTop3 ? color : "#D4DCF0" }}
         >
           {player.name}
         </div>
@@ -82,15 +71,8 @@ export function RankRow({
           )}
         </div>
 
-        {/* Barra de progresso */}
-        <div
-          className="mt-2 h-1.5 rounded-full overflow-hidden"
-          style={{ background: "rgba(255,255,255,0.05)" }}
-        >
-          <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${pct}%`, background: colors.bar }}
-          />
+        <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: `${color}CC` }} />
         </div>
       </div>
 
@@ -98,16 +80,11 @@ export function RankRow({
       <div className="text-right shrink-0 pl-1 sm:pl-2">
         <div
           className="font-display text-xl sm:text-2xl leading-none"
-          style={{
-            color: colors.badge,
-            textShadow: isTop3 ? `0 0 12px ${colors.badge}60` : "none",
-          }}
+          style={{ color, textShadow: isTop3 ? `0 0 12px ${color}60` : "none" }}
         >
           {player.rankingPoints}
         </div>
-        <div className="font-mono text-[9px] text-rpg-textDim mt-0.5 uppercase tracking-wider2">
-          pts
-        </div>
+        <div className="font-mono text-[9px] text-rpg-textDim mt-0.5 uppercase tracking-wider2">pts</div>
       </div>
     </div>
   );

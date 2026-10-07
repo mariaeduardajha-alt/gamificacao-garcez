@@ -2,30 +2,26 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { DemandWeight } from "@prisma/client";
 import { Navbar } from "@/components/Navbar";
-import { WEIGHT_POINTS, WEIGHT_COLOR, WEIGHT_LABEL } from "@/lib/scoring";
-
-const weights = ["SMALL", "MEDIUM", "LARGE", "EPIC"] as const;
+import { useApiMutation } from "@/hooks/useApiMutation";
+import { DEMAND_WEIGHTS, WEIGHT_POINTS, WEIGHT_COLOR, WEIGHT_LABEL } from "@/lib/game-rules";
+import { todayInputValue } from "@/lib/format";
 
 export default function NovaDemandaPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [weight, setWeight] = useState<typeof weights[number]>("MEDIUM");
+  const { mutate, busy, error } = useApiMutation<FormData>();
+  const [weight, setWeight] = useState<DemandWeight>("MEDIUM");
   const [preview, setPreview] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setErr(null);
-    setLoading(true);
     const fd = new FormData(e.currentTarget);
     fd.set("weight", weight);
-    const res = await fetch("/api/demands", { method: "POST", body: fd });
-    setLoading(false);
-    if (!res.ok) {
-      const d = await res.json().catch(() => null);
-      setErr(d?.error || "erro ao enviar");
-      return;
+    try {
+      await mutate("/api/demands", fd);
+    } catch {
+      return; // mensagem exibida via `error`
     }
     router.push("/demandas");
     router.refresh();
@@ -55,14 +51,14 @@ export default function NovaDemandaPage() {
             </div>
             <div>
               <label className="val-label">Concluída em</label>
-              <input type="date" name="completedAt" required className="val-input" defaultValue={new Date().toISOString().slice(0,10)} />
+              <input type="date" name="completedAt" required className="val-input" defaultValue={todayInputValue()} />
             </div>
           </div>
 
           <div>
             <label className="val-label">Peso da demanda</label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {weights.map((w) => {
+              {DEMAND_WEIGHTS.map((w) => {
                 const active = w === weight;
                 return (
                   <button
@@ -106,16 +102,16 @@ export default function NovaDemandaPage() {
             )}
           </div>
 
-          {err && (
+          {error && (
             <div className="border border-val-red/50 bg-val-red/10 px-3 py-2 text-val-red font-mono text-xs uppercase">
-              {err}
+              {error}
             </div>
           )}
 
           <div className="flex items-center justify-between">
             <button type="button" onClick={() => router.back()} className="val-btn-outline">Cancelar</button>
-            <button type="submit" disabled={loading} className="val-btn-danger">
-              {loading ? "Enviando..." : `Enviar (+${WEIGHT_POINTS[weight]} pts)`}
+            <button type="submit" disabled={busy} className="val-btn-danger">
+              {busy ? "Enviando..." : `Enviar (+${WEIGHT_POINTS[weight]} pts)`}
             </button>
           </div>
         </form>

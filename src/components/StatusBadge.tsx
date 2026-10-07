@@ -1,13 +1,15 @@
 import type { ReviewStatus } from "@prisma/client";
 import { STATUS_META } from "@/lib/status";
 
-export function StatusBadge({ status }: { status: ReviewStatus }) {
-  const s = STATUS_META[status];
+/** Etiqueta de status (Pendente / Aprovada / Rejeitada) — única em todo o app. */
+export function StatusBadge({ status, className = "" }: { status: ReviewStatus; className?: string }) {
+  const { label, color } = STATUS_META[status];
   return (
     <span
-      className={`inline-block px-2 py-1 border font-display uppercase tracking-wider2 text-[10px] ${s.cls}`}
+      className={`inline-block font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5 ${className}`}
+      style={{ color, background: `${color}18`, border: `1px solid ${color}40` }}
     >
-      {s.label}
+      {label}
     </span>
   );
 }

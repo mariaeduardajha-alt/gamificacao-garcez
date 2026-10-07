@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { playTones } from "@/lib/audio";
+import { WEEKLY_GOAL_DAYS } from "@/lib/game-rules";
 
 /* ── Sons (contexto de áudio compartilhado p/ funcionar no mobile) ── */
 function playDaySound() {
@@ -50,13 +51,13 @@ function DayCard({
   return (
     <div
       onAnimationEnd={onEnd}
+      className="clip-notch-sm"
       style={{
         background: "linear-gradient(135deg,rgba(8,12,28,.98),rgba(16,24,52,.98))",
         border: "1px solid rgba(240,192,48,0.50)",
         boxShadow: "0 0 24px rgba(240,192,48,0.20)",
         padding: "1rem 1.5rem",
         minWidth: 190,
-        clipPath: "polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)",
         animation: "score-popup 1.2s ease-out forwards",
         position: "relative",
       }}
@@ -103,13 +104,13 @@ function BonusCard({ points, onEnd }: { points: number; onEnd: () => void }) {
   return (
     <div
       onAnimationEnd={onEnd}
+      className="clip-notch-sm"
       style={{
         background: "linear-gradient(135deg,rgba(10,6,28,.99),rgba(24,10,52,.99))",
         border: "1px solid rgba(167,139,250,0.65)",
         boxShadow: "0 0 36px rgba(167,139,250,0.30), 0 0 12px rgba(240,192,48,0.15)",
         padding: "1.2rem 1.8rem",
         minWidth: 210,
-        clipPath: "polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)",
         animation: "score-popup 1.6s ease-out forwards",
         animationDelay: "0.25s",
         opacity: 0,
@@ -124,11 +125,9 @@ function BonusCard({ points, onEnd }: { points: number; onEnd: () => void }) {
         ⚡ Bônus semanal
       </div>
       <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
-        <span style={{ fontFamily:"var(--font-display),Impact,sans-serif",
+        <span className="text-gradient" style={{ fontFamily:"var(--font-display),Impact,sans-serif",
           fontSize:58, fontWeight:900, lineHeight:1,
-          background:"linear-gradient(135deg,#F0C040,#A78BFA)",
-          WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-          backgroundClip:"text",
+          backgroundImage:"linear-gradient(135deg,#F0C040,#A78BFA)",
           filter:"drop-shadow(0 0 14px rgba(167,139,250,0.8))" }}>
           +{points}
         </span>
@@ -140,7 +139,7 @@ function BonusCard({ points, onEnd }: { points: number; onEnd: () => void }) {
       <div style={{ fontFamily:"var(--font-mono),monospace", fontSize:9,
         color:"rgba(240,192,48,0.6)", textTransform:"uppercase",
         letterSpacing:"0.14em", marginTop:4 }}>
-        ≥ 3 dias ativos na semana
+        ≥ {WEEKLY_GOAL_DAYS} dias ativos na semana
       </div>
     </div>
   );

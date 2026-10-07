@@ -1,8 +1,10 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { saveProof } from "@/lib/storage";
+import { saveUpload, isAllowedImage } from "@/lib/storage";
 import { computeActiveDaysStats } from "@/lib/scoring";
+import { POINTS_PER_ACTIVE_DAY, CONSTANCY_BONUS_POINTS } from "@/lib/game-rules";
 import { getActiveChallenge } from "@/lib/challenge";
+import { dateFromInput } from "@/lib/format";
 import { requireAuth } from "@/lib/api-auth";
 import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 import { createActivitySchema } from "@/lib/schemas";
@@ -10,6 +12,7 @@ import { MAX_PROOF_SIZE_BYTES } from "@/lib/constants";
 
 export const runtime = "nodejs";
 
+/** Registra um exercício (já aprovado) e devolve os pontos ganhos com ele. */
 export const POST = withApiHandler(async (req: NextRequest) => {
   const authResult = await requireAuth();
   if (!authResult.ok) return authResult.response;
@@ -23,20 +26,19 @@ export const POST = withApiHandler(async (req: NextRequest) => {
     notes: form.get("notes") || undefined,
   });
   if (!parsed.success) return apiError("invalid_input");
-  const { type, durationMin, notes } = parsed.data;
-  const dateStr = form.get("date") as string;
+  const { date, type, durationMin, notes } = parsed.data;
 
   const file = form.get("proof") as File | null;
-  if (file && file.size > MAX_PROOF_SIZE_BYTES) {
-    return apiError("file_too_large");
-  }
+  const hasFile = !!file && file.size > 0;
+  if (hasFile && file.size > MAX_PROOF_SIZE_BYTES) return apiError("file_too_large");
+  if (hasFile && !isAllowedImage(file)) return apiError("invalid_file");
 
-  const proofUrl = file && file.size > 0 ? await saveProof(session.user.id, file) : null;
+  const proofUrl = hasFile ? await saveUpload(session.user.id, file) : null;
 
   const activity = await prisma.activity.create({
     data: {
       userId: session.user.id,
-      date: new Date(dateStr + "T12:00:00Z"),
+      date: dateFromInput(date),
       type,
       durationMin,
       notes: notes ?? null,
@@ -45,7 +47,7 @@ export const POST = withApiHandler(async (req: NextRequest) => {
     },
   });
 
-  // Calcula pontos ganhos e se houve bônus de constância
+  // Pontos ganhos com este registro: compara as estatísticas antes e depois dele
   const challenge = await getActiveChallenge();
   const prevActivities = await prisma.activity.findMany({
     where: {
@@ -57,12 +59,15 @@ export const POST = withApiHandler(async (req: NextRequest) => {
     select: { date: true, durationMin: true },
   });
   const statsBefore = computeActiveDaysStats(prevActivities);
-  const statsAfter = computeActiveDaysStats([
-    ...prevActivities,
-    { date: activity.date, durationMin: activity.durationMin },
-  ]);
-  const dayPointsGained = (statsAfter.activeDays - statsBefore.activeDays) * 10;
-  const bonusGained = (statsAfter.weeksHitGoal - statsBefore.weeksHitGoal) * 20;
+  const statsAfter = computeActiveDaysStats([...prevActivities, activity]);
+  const dayPointsGained = (statsAfter.activeDays - statsBefore.activeDays) * POINTS_PER_ACTIVE_DAY;
+  const bonusGained = (statsAfter.weeksHitGoal - statsBefore.weeksHitGoal) * CONSTANCY_BONUS_POINTS;
 
-  return apiSuccess({ ok: true, id: activity.id, dayPointsGained, bonusGained });
+  // Total de minutos já registrados no dia (para o aviso de "faltam X min")
+  const dayKey = activity.date.toISOString().slice(0, 10);
+  const dayMinutes = [...prevActivities, activity]
+    .filter((a) => a.date.toISOString().slice(0, 10) === dayKey)
+    .reduce((s, a) => s + (a.durationMin ?? 0), 0);
+
+  return apiSuccess({ ok: true, id: activity.id, dayPointsGained, bonusGained, dayMinutes });
 });

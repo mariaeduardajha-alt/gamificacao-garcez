@@ -35,6 +35,12 @@ body {
 .clip-notch {
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
 }
+.clip-notch-sm {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+.clip-notch-xs {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
 .clip-notch-both {
   clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
 }
@@ -95,6 +101,14 @@ body {
 /* Card com padding menor no mobile para não cortar lateralmente */
 @media (max-width: 640px) {
   .val-card { padding: 1.1rem !important; }
+}
+
+/* Texto com degradê: definir o gradiente via `backgroundImage` (não `background`,
+   que resetaria o background-clip) */
+.text-gradient {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Divisor decorativo */

@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { WEIGHT_COLOR, WEIGHT_LABEL, WEIGHT_POINTS } from "@/lib/scoring";
+import { DEMAND_WEIGHTS, WEIGHT_COLOR, WEIGHT_LABEL, WEIGHT_POINTS } from "@/lib/game-rules";
+import { formatDate } from "@/lib/format";
 import type { DemandWeight } from "@prisma/client";
 import type { DemandWithUserSerialized } from "@/types/domain";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 type Item = DemandWithUserSerialized;
-
-const weights: DemandWeight[] = ["SMALL", "MEDIUM", "LARGE", "EPIC"];
 
 /** Fila de demandas pendentes: o admin aprova (podendo ajustar o peso) ou rejeita. */
 export function DemandsReviewList({ items }: { items: Item[] }) {
@@ -53,14 +52,14 @@ export function DemandsReviewList({ items }: { items: Item[] }) {
               <div className="font-display text-xl text-val-cream">{it.title}</div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <Field label="Cliente" value={it.client || "—"} />
-                <Field label="Concluída em" value={new Date(it.completedAt).toLocaleDateString("pt-BR")} />
+                <Field label="Concluída em" value={formatDate(it.completedAt)} />
                 <Field label="Pontos" value={`${WEIGHT_POINTS[currentWeight]} pts`} />
               </div>
 
               <div>
                 <div className="font-display uppercase tracking-wider2 text-xs text-val-line mb-2">Peso (pode ajustar)</div>
                 <div className="flex flex-wrap gap-2">
-                  {weights.map((w) => {
+                  {DEMAND_WEIGHTS.map((w) => {
                     const active = w === currentWeight;
                     return (
                       <button

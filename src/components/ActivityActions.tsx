@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import { TrashIcon } from "./icons";
 
+/** Ações de uma atividade do próprio usuário: ver/baixar print e excluir. */
 export function ActivityActions({
   id,
   proofUrl,
@@ -14,19 +17,8 @@ export function ActivityActions({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuRef = useClickOutside<HTMLDivElement>(useCallback(() => setOpen(false), []));
   const { mutate } = useApiMutation();
-
-  // Fecha o menu ao clicar fora
-  useEffect(() => {
-    function handle(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
-  }, []);
 
   async function handleDelete() {
     if (!confirm("Excluir este registro?")) return;
@@ -46,12 +38,7 @@ export function ActivityActions({
 
       {/* Ver print */}
       {proofUrl ? (
-        <a
-          href={proofUrl}
-          target="_blank"
-          className="font-display uppercase tracking-wider2 text-xs"
-          style={{ color: "#3D7FFF" }}
-        >
+        <a href={proofUrl} target="_blank" className="font-display uppercase tracking-wider2 text-xs" style={{ color: "#3D7FFF" }}>
           Ver
         </a>
       ) : (
@@ -109,11 +96,7 @@ export function ActivityActions({
         className="flex items-center justify-center w-6 h-6 rounded hover:bg-red-500/15 transition-colors"
         style={{ color: deleting ? "rgba(255,255,255,0.2)" : "rgba(255,70,85,0.6)" }}
       >
-        <svg viewBox="0 0 16 18" width="13" height="15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M1 4h14M6 4V2h4v2M5 4v10a1 1 0 001 1h4a1 1 0 001-1V4" />
-          <line x1="7" y1="7" x2="7" y2="12" />
-          <line x1="9" y1="7" x2="9" y2="12" />
-        </svg>
+        <TrashIcon />
       </button>
 
     </div>

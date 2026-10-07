@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { Role } from "@prisma/client";
 import type { UserSummarySerialized } from "@/types/domain";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { Th, Td } from "@/components/table/Table";
@@ -64,8 +65,8 @@ function UserRow({
     try {
       await mutate(`/api/users/${user.id}`, undefined, "DELETE");
       onChanged();
-    } catch {
-      alert("Falha ao remover");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Falha ao remover");
     }
   }
 
@@ -119,8 +120,7 @@ function NewUserForm({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
       });
       onSaved();
     } catch (error) {
-      const code = error instanceof Error ? error.message : "falha";
-      setErr(code === "email_taken" ? "email já cadastrado" : code);
+      setErr(error instanceof Error ? error.message : "Falha ao salvar");
     } finally {
       setLoading(false);
     }
@@ -183,7 +183,7 @@ function EditUserRow({ user, onClose, onSaved }: { user: U; onClose: () => void;
       <Td className="font-mono text-val-line text-xs">{user.email}</Td>
       <Td><input value={sector} onChange={(e) => setSector(e.target.value)} className="val-input py-1 px-2 text-sm" /></Td>
       <Td>
-        <select value={role} onChange={(e) => setRole(e.target.value as any)} className="val-input py-1 px-2 text-sm">
+        <select value={role} onChange={(e) => setRole(e.target.value as Role)} className="val-input py-1 px-2 text-sm">
           <option value="USER">USER</option>
           <option value="ADMIN">ADMIN</option>
         </select>

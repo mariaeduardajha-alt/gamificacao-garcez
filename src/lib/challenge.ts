@@ -1,148 +1,100 @@
+import type { Challenge, SectorGoal } from "@prisma/client";
 import { prisma } from "./prisma";
+import { POINTS_PER_ACTIVE_DAY } from "./game-rules";
 import {
   computePlayerStats,
-  medalForTotal,
   tierForValue,
   nextTierTarget,
   compareRank,
   type PlayerStats,
-  type MedalTier
+  type MedalTier,
+  type NextTier
 } from "./scoring";
 
-export async function getActiveChallenge() {
-  let challenge = await prisma.challenge.findFirst({ where: { active: true } });
+/**
+ * Desafio ativo. Criado pelo seed (`prisma/seed.ts`), que é a única fonte
+ * das datas e metas iniciais.
+ */
+export async function getActiveChallenge(): Promise<Challenge> {
+  const challenge = await prisma.challenge.findFirst({ where: { active: true } });
   if (!challenge) {
-    challenge = await prisma.challenge.create({
-      data: {
-        name: "Movimento em Jogo",
-        startDate: new Date("2026-06-08T00:00:00Z"),
-        endDate: new Date("2026-07-08T23:59:59Z"),
-        bronzeActiveDays: 48,
-        silverActiveDays: 72,
-        goldActiveDays: 96,
-        active: true
-      }
-    });
+    throw new Error("Nenhum desafio ativo no banco. Rode `npm run db:seed`.");
   }
   return challenge;
 }
 
-export interface SectorGoalData {
-  id: string;
-  area: string;
-  responsible: string;
-  indicator: string;
-  current: number;
+export interface SectorGoalData extends Omit<SectorGoal, "createdAt" | "updatedAt"> {
+  tier: MedalTier;
+  next: NextTier | null;
+}
+
+/** Metas de escudo de cada pessoa = meta coletiva ÷ nº de participantes. */
+export interface IndividualGoal {
   bronze: number;
   silver: number;
   gold: number;
-  unit: string;
-  direction: "HIGHER_IS_BETTER" | "LOWER_IS_BETTER";
-  avatarUrl: string | null;
-  tier: MedalTier;
-  nextTarget: number | null;
-  nextLabel: string | null;
-  gap: number | null; // quanto falta (sempre positivo)
 }
 
 export interface ChallengeSnapshot {
-  challenge: Awaited<ReturnType<typeof getActiveChallenge>>;
+  challenge: Challenge;
 
-  // ── MOVIMENTO EM JOGO: coletivo (junho) ──
+  // ── Coletivo ──
   totalCollectiveActiveDays: number;  // só dias reais (meta coletiva)
-  totalCollectivePoints: number;      // base (dias×10) + bônus de constância
+  totalCollectivePoints: number;      // base (dias × pontos) + bônus de constância
   collectiveMedal: MedalTier;
-  collectiveNext: { target: number; label: string } | null;
+  collectiveNext: NextTier | null;
 
-  // ── RANKING INDIVIDUAL (período completo) ──
-  rankActiveDays: PlayerStats[];
+  // ── Individual ──
+  players: PlayerStats[];             // ordenados pelo ranking oficial (compareRank)
+  individualGoal: IndividualGoal;
 
-  // ── METAS DOS SETORES ──
+  // ── Metas dos setores ──
   sectorGoals: SectorGoalData[];
-
-  // ── Usado pelo HUB pra achar as stats do jogador logado ──
-  players: PlayerStats[];
 
   daysLeft: number;
   daysTotal: number;
 }
 
+/**
+ * Função central do sistema: busca tudo do banco de uma vez e devolve os
+ * dados usados pelo HUB, pela página de setores e pelo painel admin.
+ */
 export async function buildSnapshot(): Promise<ChallengeSnapshot> {
   const challenge = await getActiveChallenge();
 
-  // ── Busca usuários com atividades (período completo do desafio) ──
-  const users = await prisma.user.findMany({
-    include: {
-      activities: {
-        where: {
-          status: "APPROVED",
-          date: { gte: challenge.startDate, lte: challenge.endDate }
-        },
-        select: { date: true, durationMin: true }
+  const [users, rawGoals] = await Promise.all([
+    prisma.user.findMany({
+      include: {
+        activities: {
+          where: {
+            status: "APPROVED",
+            date: { gte: challenge.startDate, lte: challenge.endDate }
+          },
+          select: { date: true, durationMin: true }
+        }
       }
-    }
-  });
+    }),
+    prisma.sectorGoal.findMany({ orderBy: { createdAt: "asc" } })
+  ]);
 
-  const players = users.map((u) => computePlayerStats(u, u.activities));
-
-  // ── Ranking individual: pontuação → dias ativos → semanas com meta → tempo total ──
-  const rankActiveDays = [...players].sort(compareRank);
+  const players = users.map((u) => computePlayerStats(u, u.activities)).sort(compareRank);
 
   // ── Coletivo: SEPARAÇÃO OBRIGATÓRIA entre dias ativos e pontuação ──
-  //
-  // Dias ativos coletivos = SOMENTE dias reais de atividade física validada
-  //   (≥30 min). O bônus de constância NÃO vira dia ativo.
-  //   → usado para o progresso da Meta Coletiva (48/72/96 dias).
-  //
-  // Pontuação coletiva = base (dias × 10) + bônus de constância.
-  //   → usada apenas como pontuação total da equipe (não afeta a meta em dias).
-  let totalCollectiveActiveDays = 0;   // soma dos activeDays reais
-  let collectiveBonusPoints     = 0;   // soma dos bônus de constância
-  for (const p of players) {
-    totalCollectiveActiveDays += p.activeDays;
-    collectiveBonusPoints     += p.constancyBonus;
-  }
-  const collectiveBasePoints  = totalCollectiveActiveDays * 10;
-  const totalCollectivePoints = collectiveBasePoints + collectiveBonusPoints;
+  // Dias ativos coletivos = SOMENTE dias reais de atividade validada. O bônus
+  // de constância NÃO vira dia ativo → usado no progresso da Meta Coletiva.
+  // Pontuação coletiva = base + bônus → só exibida como pontuação da equipe.
+  const totalCollectiveActiveDays = players.reduce((s, p) => s + p.activeDays, 0);
+  const totalCollectiveBonus      = players.reduce((s, p) => s + p.constancyBonus, 0);
+  const totalCollectivePoints     = totalCollectiveActiveDays * POINTS_PER_ACTIVE_DAY + totalCollectiveBonus;
 
-  const collectiveMedal = medalForTotal(
-    totalCollectiveActiveDays,
-    challenge.bronzeActiveDays,
-    challenge.silverActiveDays,
-    challenge.goldActiveDays
-  );
-  const collectiveNext =
-    totalCollectiveActiveDays < challenge.bronzeActiveDays
-      ? { target: challenge.bronzeActiveDays, label: "BRONZE" }
-      : totalCollectiveActiveDays < challenge.silverActiveDays
-      ? { target: challenge.silverActiveDays, label: "PRATA" }
-      : totalCollectiveActiveDays < challenge.goldActiveDays
-      ? { target: challenge.goldActiveDays, label: "OURO" }
-      : null;
+  const { bronzeActiveDays: bronze, silverActiveDays: silver, goldActiveDays: gold } = challenge;
+  const nPlayers = Math.max(1, players.length);
 
-  // ── Metas dos Setores ──
-  const rawGoals = await prisma.sectorGoal.findMany({ orderBy: { createdAt: "asc" } });
-  const sectorGoals: SectorGoalData[] = rawGoals.map((g) => {
-    const tier = tierForValue(g.current, g.bronze, g.silver, g.gold, g.direction);
-    const next = nextTierTarget(g.current, g.bronze, g.silver, g.gold, g.direction);
-    return {
-      id: g.id,
-      area: g.area,
-      responsible: g.responsible,
-      indicator: g.indicator,
-      current: g.current,
-      bronze: g.bronze,
-      silver: g.silver,
-      gold: g.gold,
-      unit: g.unit,
-      direction: g.direction,
-      avatarUrl: g.avatarUrl,
-      tier,
-      nextTarget: next?.target ?? null,
-      nextLabel: next?.label ?? null,
-      gap: next?.gap ?? null
-    };
-  });
+  const sectorGoals: SectorGoalData[] = rawGoals.map(({ createdAt, updatedAt, ...g }) => ({
+    ...g,
+    tier: tierForValue(g.current, g.bronze, g.silver, g.gold, g.direction),
+    next: nextTierTarget(g.current, g.bronze, g.silver, g.gold, g.direction)
+  }));
 
   const daysTotal = Math.ceil(
     (challenge.endDate.getTime() - challenge.startDate.getTime()) / 86400000
@@ -153,11 +105,15 @@ export async function buildSnapshot(): Promise<ChallengeSnapshot> {
     challenge,
     totalCollectiveActiveDays,
     totalCollectivePoints,
-    collectiveMedal,
-    collectiveNext,
-    rankActiveDays,
-    sectorGoals,
+    collectiveMedal: tierForValue(totalCollectiveActiveDays, bronze, silver, gold),
+    collectiveNext: nextTierTarget(totalCollectiveActiveDays, bronze, silver, gold),
     players,
+    individualGoal: {
+      bronze: Math.round(bronze / nPlayers),
+      silver: Math.round(silver / nPlayers),
+      gold:   Math.round(gold / nPlayers)
+    },
+    sectorGoals,
     daysLeft,
     daysTotal
   };

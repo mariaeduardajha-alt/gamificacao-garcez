@@ -5,6 +5,7 @@ export type ApiErrorCode =
   | "forbidden"
   | "invalid_input"
   | "invalid_action"
+  | "invalid_file"
   | "not_found"
   | "file_too_large"
   | "no_file"
@@ -17,6 +18,7 @@ const STATUS_BY_CODE: Record<ApiErrorCode, number> = {
   forbidden: 403,
   invalid_input: 400,
   invalid_action: 400,
+  invalid_file: 415,
   not_found: 404,
   file_too_large: 413,
   no_file: 400,

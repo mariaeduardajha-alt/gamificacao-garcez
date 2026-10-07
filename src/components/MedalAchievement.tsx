@@ -2,22 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { MedalTier } from "@/lib/scoring";
+import { TIER_COLOR, TIER_LABEL, TIER_RANK } from "@/lib/tiers";
 import { playTones } from "@/lib/audio";
-
-const TIER_RANK: Record<MedalTier, number> = {
-  NONE: 0, BRONZE: 1, SILVER: 2, GOLD: 3,
-};
-
-const TIER_LABEL: Record<MedalTier, string> = {
-  NONE: "", BRONZE: "Escudo Bronze", SILVER: "Escudo Prata", GOLD: "Escudo Ouro",
-};
-
-const TIER_COLOR: Record<MedalTier, string> = {
-  NONE:   "#A78BFA",
-  BRONZE: "#C07030",
-  SILVER: "#8FA8C8",
-  GOLD:   "#F0C040",
-};
 
 /* ── Som de conquista de escudo (contexto compartilhado p/ mobile) ── */
 function playConquestSound(tier: MedalTier) {
@@ -58,7 +44,10 @@ function playConquestSound(tier: MedalTier) {
   }
 }
 
-/* ── Componente ───────────────────────────────────────────────── */
+/**
+ * Pop-up "Conquista desbloqueada" quando o jogador sobe de escudo individual.
+ * Usa localStorage para mostrar cada conquista uma única vez.
+ */
 export function MedalAchievement({
   tier,
   userId,
@@ -103,13 +92,13 @@ export function MedalAchievement({
       }}
     >
       <div
+        className="clip-notch-sm"
         style={{
           background: `linear-gradient(135deg, rgba(8,6,20,.98), rgba(20,14,40,.98))`,
           border: `1px solid ${color}80`,
           boxShadow: `0 0 40px ${color}30, 0 0 12px ${color}18`,
           padding: "1.2rem 1.8rem",
           minWidth: 220,
-          clipPath: "polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)",
           position: "relative",
         }}
       >
@@ -131,7 +120,7 @@ export function MedalAchievement({
           color,
           textShadow:`0 0 20px ${color}CC`,
         }}>
-          {TIER_LABEL[achieved]}
+          Escudo {TIER_LABEL[achieved]}
         </div>
 
         {/* Sub */}

@@ -56,13 +56,8 @@ export default function LoginPage() {
         {/* Subtitle */}
         <div className="text-center mb-6">
           <div
-            className="font-display uppercase tracking-wider2 text-sm"
-            style={{
-              background: "linear-gradient(135deg, #A78BFA, #3D7FFF)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
+            className="font-display uppercase tracking-wider2 text-sm text-gradient"
+            style={{ backgroundImage: "linear-gradient(135deg, #A78BFA, #3D7FFF)" }}
           >
             Movimento em Jogo
           </div>
@@ -80,13 +75,12 @@ export default function LoginPage() {
         {/* Formulário */}
         <form
           onSubmit={onSubmit}
-          className="space-y-4"
+          className="space-y-4 clip-notch"
           style={{
             background: "rgba(10,14,32,0.90)",
             border: "1px solid rgba(61,127,255,0.20)",
             backdropFilter: "blur(16px)",
             padding: "1.75rem",
-            clipPath: "polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%)",
           }}
         >
           {/* Barra topo */}
@@ -142,7 +136,7 @@ export default function LoginPage() {
           className="text-center font-mono text-[10px] mt-4 uppercase tracking-wider2"
           style={{ color: "rgba(90,106,138,0.5)" }}
         >
-          Garcez Consultoria Jurídica · 2026
+          Garcez Consultoria Jurídica · {new Date().getFullYear()}
         </p>
       </div>
     </main>

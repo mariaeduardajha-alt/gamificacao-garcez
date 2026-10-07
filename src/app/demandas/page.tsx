@@ -1,17 +1,16 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/Navbar";
 import { StatusBadge } from "@/components/StatusBadge";
-import { WEIGHT_COLOR, WEIGHT_LABEL } from "@/lib/scoring";
+import { WEIGHT_COLOR, WEIGHT_LABEL } from "@/lib/game-rules";
+import { formatDate } from "@/lib/format";
 import { Th, Td } from "@/components/table/Table";
 
 export const dynamic = "force-dynamic";
 
 export default async function DemandasPage() {
-  const session = await auth();
-  if (!session) redirect("/login");
+  const session = await requireSession();
 
   const demands = await prisma.demand.findMany({
     where: { userId: session.user.id },
@@ -56,7 +55,7 @@ export default async function DemandasPage() {
               <tbody>
                 {demands.map((d) => (
                   <tr key={d.id} className="border-b border-val-line/10 hover:bg-val-bgDark/40">
-                    <Td className="font-mono">{d.completedAt.toLocaleDateString("pt-BR")}</Td>
+                    <Td className="font-mono">{formatDate(d.completedAt)}</Td>
                     <Td className="text-val-cream">{d.title}</Td>
                     <Td className="font-mono text-val-line">{d.client || "—"}</Td>
                     <Td>

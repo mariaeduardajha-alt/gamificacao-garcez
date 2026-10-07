@@ -1,13 +1,15 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireSession } from "@/lib/auth";
 import { buildSnapshot } from "@/lib/challenge";
+import { rankWithTies, tierForValue } from "@/lib/scoring";
+import { POINTS_PER_ACTIVE_DAY, WEEKLY_GOAL_DAYS, CONSTANCY_BONUS_POINTS, MIN_MINUTES_PER_ACTIVE_DAY } from "@/lib/game-rules";
+import { TIER_COLOR } from "@/lib/tiers";
+import { formatTacticalDate, formatMonthRange } from "@/lib/format";
 import { Navbar } from "@/components/Navbar";
 import { MedalGauge } from "@/components/MedalGauge";
 import { PodiumShield } from "@/components/PodiumShield";
 import { SectionHeader } from "@/components/SectionHeader";
 import { MissionStat } from "@/components/MissionStat";
 import { RankRow } from "@/components/RankRow";
-import { medalForTotal, rankWithTies } from "@/lib/scoring";
 import { BonusSound } from "@/components/BonusSound";
 import { ScoreAnimation } from "@/components/ScoreAnimation";
 import { MedalAchievement } from "@/components/MedalAchievement";
@@ -15,41 +17,34 @@ import { MedalAchievement } from "@/components/MedalAchievement";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const session = await auth();
-  if (!session) redirect("/login");
+  const session = await requireSession();
 
   const s = await buildSnapshot();
-  const rank = s.rankActiveDays;
-  const maxPts = Math.max(1, rank[0]?.rankingPoints ?? 1);
-  const isAdmin = session.user.role === "ADMIN";
+  const { challenge, players, individualGoal: goal } = s;
+  const maxPts = Math.max(1, players[0]?.rankingPoints ?? 1);
+  const period = formatMonthRange(challenge.startDate, challenge.endDate);
 
   // Colocação com empates reais (mesma pontuação = mesma posição)
-  const ranks = rankWithTies(rank);
+  const ranks = rankWithTies(players);
 
   // Stats do jogador atual
-  const myStats = s.players.find((p) => p.userId === session.user.id);
-  const myIdx = rank.findIndex((p) => p.userId === session.user.id);
+  const myIdx = players.findIndex((p) => p.userId === session.user.id);
+  const myStats = myIdx >= 0 ? players[myIdx] : undefined;
   const myPosition = myIdx >= 0 ? ranks[myIdx] : 0;
-
-  // Thresholds individuais = coletivo ÷ nº de jogadores
-  const nPlayers = Math.max(1, s.players.length);
-  const indBronze = Math.round(s.challenge.bronzeActiveDays / nPlayers);
-  const indSilver = Math.round(s.challenge.silverActiveDays / nPlayers);
-  const indGold   = Math.round(s.challenge.goldActiveDays   / nPlayers);
 
   return (
     <>
       <Navbar />
       {myStats && (
-        <BonusSound weeksHitGoal={myStats.weeksHitGoal} userId={session.user.id} />
+        <>
+          <BonusSound weeksHitGoal={myStats.weeksHitGoal} userId={session.user.id} />
+          <MedalAchievement
+            tier={tierForValue(myStats.activeDays, goal.bronze, goal.silver, goal.gold)}
+            userId={session.user.id}
+          />
+        </>
       )}
       <ScoreAnimation currentPoints={myStats?.rankingPoints ?? 0} />
-      {myStats && (
-        <MedalAchievement
-          tier={medalForTotal(myStats.activeDays, indBronze, indSilver, indGold)}
-          userId={session.user.id}
-        />
-      )}
       <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 space-y-10 sm:space-y-14">
 
         {/* ════════════════════════════════════════════════════════
@@ -71,66 +66,63 @@ export default async function HomePage() {
                 Operação ativa · {s.daysLeft} dias restantes de {s.daysTotal}
               </div>
               <h1
-                className="val-heading mt-1"
+                className="val-heading mt-1 text-gradient"
                 style={{
                   fontSize: "clamp(1.7rem, 6vw, 3.5rem)",
-                  background: "linear-gradient(135deg, #D4DCF0 30%, #A78BFA 70%, #3D7FFF 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
+                  backgroundImage: "linear-gradient(135deg, #D4DCF0 30%, #A78BFA 70%, #3D7FFF 100%)",
                 }}
               >
-                Movimento em Jogo
+                {challenge.name}
               </h1>
               <p className="font-mono text-rpg-textDim text-xs uppercase tracking-wider2 mt-1">
-                08.JUN.2026 — 08.JUL.2026 · Equipe Garcez · {s.players.length} agentes
+                {formatTacticalDate(challenge.startDate)} — {formatTacticalDate(challenge.endDate)} · Equipe Garcez · {players.length} agentes
               </p>
             </div>
 
             {/* Painel de missão — igual para todos */}
             <div className="grid grid-cols-2 gap-3">
               <MissionStat
-                  icon={
-                    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="10,2 12.5,7.5 18,8.2 14,12 15.2,18 10,15 4.8,18 6,12 2,8.2 7.5,7.5" />
-                    </svg>
-                  }
-                  label="Sua posição"
-                  value={myPosition > 0 ? `${myPosition}°` : "—"}
-                  color="#F0C040"
-                />
-                <MissionStat
-                  icon={
-                    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10 2v6l4 2" /><circle cx="10" cy="10" r="8" />
-                    </svg>
-                  }
-                  label="Dias ativos"
-                  value={String(myStats?.activeDays ?? 0)}
-                  color="#2DD4BF"
-                />
-                <MissionStat
-                  icon={
-                    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 4l4 4-2 6 4-3 4 3-2-6 4-4-6-.5z" />
-                    </svg>
-                  }
-                  label="Seus pontos"
-                  value={String(myStats?.rankingPoints ?? 0)}
-                  color="#A78BFA"
-                />
-                <MissionStat
-                  icon={
-                    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="4" width="14" height="13" rx="2" />
-                      <path d="M3 8h14M7 2v4M13 2v4" />
-                    </svg>
-                  }
-                  label="Dias restantes"
-                  value={String(s.daysLeft)}
-                  color="#3D7FFF"
-                />
-              </div>
+                icon={
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="10,2 12.5,7.5 18,8.2 14,12 15.2,18 10,15 4.8,18 6,12 2,8.2 7.5,7.5" />
+                  </svg>
+                }
+                label="Sua posição"
+                value={myPosition > 0 ? `${myPosition}°` : "—"}
+                color="#F0C040"
+              />
+              <MissionStat
+                icon={
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 2v6l4 2" /><circle cx="10" cy="10" r="8" />
+                  </svg>
+                }
+                label="Dias ativos"
+                value={String(myStats?.activeDays ?? 0)}
+                color="#2DD4BF"
+              />
+              <MissionStat
+                icon={
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 4l4 4-2 6 4-3 4 3-2-6 4-4-6-.5z" />
+                  </svg>
+                }
+                label="Seus pontos"
+                value={String(myStats?.rankingPoints ?? 0)}
+                color="#A78BFA"
+              />
+              <MissionStat
+                icon={
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="14" height="13" rx="2" />
+                    <path d="M3 8h14M7 2v4M13 2v4" />
+                  </svg>
+                }
+                label="Dias restantes"
+                value={String(s.daysLeft)}
+                color="#3D7FFF"
+              />
+            </div>
           </div>
         </section>
 
@@ -146,16 +138,16 @@ export default async function HomePage() {
           />
           <MedalGauge
             title="Escudo da Equipe"
-            subtitle="Movimento em Jogo // Dias ativos + bônus · Jun–Jul 2026"
+            subtitle={`${challenge.name} // Dias ativos + bônus · ${period}`}
+            footer={`${players.length} pessoas · ${s.daysTotal} dias · ${period}`}
             value={s.totalCollectiveActiveDays}
             unit="dias ativos"
-            bronze={s.challenge.bronzeActiveDays}
-            silver={s.challenge.silverActiveDays}
-            gold={s.challenge.goldActiveDays}
+            bronze={challenge.bronzeActiveDays}
+            silver={challenge.silverActiveDays}
+            gold={challenge.goldActiveDays}
             tier={s.collectiveMedal}
             next={s.collectiveNext}
             totalPoints={s.totalCollectivePoints}
-            socialAction={s.collectiveMedal !== "NONE"}
           />
         </section>
 
@@ -166,31 +158,25 @@ export default async function HomePage() {
           <SectionHeader
             icon="🏆"
             title="Ranking Geral"
-            subtitle="Dias ativos (≥30 min) + bônus de sequência · Período completo"
+            subtitle={`Dias ativos (≥${MIN_MINUTES_PER_ACTIVE_DAY} min) + bônus de sequência · Período completo`}
             color="#F0C040"
           />
 
-          {/* Pódio centralizado */}
           <div className="flex flex-col items-center">
             {/* ── Desktop: pódio horizontal 2-1-3 ── */}
             <div className="hidden md:flex items-end justify-center gap-4 pb-2">
-              {/* 2° lugar */}
-              <PodiumShield player={rank[1]} position={2} maxPoints={maxPts} />
-
-              {/* 1° lugar — centralizado e mais alto */}
+              <PodiumShield player={players[1]} position={2} maxPoints={maxPts} />
               <div style={{ marginBottom: 20 }}>
-                <PodiumShield player={rank[0]} position={1} maxPoints={maxPts} />
+                <PodiumShield player={players[0]} position={1} maxPoints={maxPts} />
               </div>
-
-              {/* 3° lugar */}
-              <PodiumShield player={rank[2]} position={3} maxPoints={maxPts} />
+              <PodiumShield player={players[2]} position={3} maxPoints={maxPts} />
             </div>
 
             {/* ── Mobile: pódio vertical 1-2-3 empilhado ── */}
             <div className="flex md:hidden flex-col items-center gap-1 pb-2 w-full">
-              <PodiumShield player={rank[0]} position={1} maxPoints={maxPts} />
-              <PodiumShield player={rank[1]} position={2} maxPoints={maxPts} />
-              <PodiumShield player={rank[2]} position={3} maxPoints={maxPts} />
+              <PodiumShield player={players[0]} position={1} maxPoints={maxPts} />
+              <PodiumShield player={players[1]} position={2} maxPoints={maxPts} />
+              <PodiumShield player={players[2]} position={3} maxPoints={maxPts} />
             </div>
 
             {/* Esferas 3D no chão — estética de jogo */}
@@ -225,9 +211,9 @@ export default async function HomePage() {
             {/* Legenda do pódio */}
             <div className="mt-3 rpg-divider w-full max-w-md mx-auto" />
             <div className="flex flex-wrap justify-center gap-4 mt-3 font-mono text-[10px] uppercase tracking-wider2 text-rpg-textDim">
-              <span style={{ color: "rgba(240,192,48,0.7)" }}>◆ 1 dia ativo = 10 pts</span>
-              <span style={{ color: "rgba(61,127,255,0.7)" }}>◆ meta semanal = 3 dias</span>
-              <span style={{ color: "rgba(124,77,255,0.7)" }}>◆ semana com ≥3 dias = +20 bônus</span>
+              <span style={{ color: `${TIER_COLOR.GOLD}B3` }}>◆ 1 dia ativo = {POINTS_PER_ACTIVE_DAY} pts</span>
+              <span style={{ color: "rgba(61,127,255,0.7)" }}>◆ meta semanal = {WEEKLY_GOAL_DAYS} dias</span>
+              <span style={{ color: "rgba(124,77,255,0.7)" }}>◆ semana com ≥{WEEKLY_GOAL_DAYS} dias = +{CONSTANCY_BONUS_POINTS} bônus</span>
             </div>
           </div>
         </section>
@@ -244,15 +230,13 @@ export default async function HomePage() {
           />
 
           <div className="space-y-3">
-            {rank.map((player, idx) => (
+            {players.map((player, idx) => (
               <RankRow
                 key={player.userId}
                 player={player}
                 position={ranks[idx]}
                 maxPoints={maxPts}
-                bronze={indBronze}
-                silver={indSilver}
-                gold={indGold}
+                goal={goal}
               />
             ))}
           </div>

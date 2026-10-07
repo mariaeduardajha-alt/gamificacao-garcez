@@ -5,13 +5,14 @@ import {
   compareRank,
   rankWithTies,
   computeActiveDaysStats,
-  medalForTotal,
+  activeDayKeys,
+  activeDaysInWeek,
   tierForValue,
   nextTierTarget,
   isoWeekKey,
-  WEIGHT_POINTS,
   type RankCriteria,
 } from "./scoring";
+import { WEIGHT_POINTS } from "./game-rules";
 
 describe("compareRank", () => {
   it("ordena por pontuação total primeiro", () => {
@@ -82,20 +83,13 @@ describe("computeActiveDaysStats", () => {
   });
 });
 
-describe("medalForTotal", () => {
-  it("respeita os limiares bronze/silver/gold", () => {
-    expect(medalForTotal(0, 10, 20, 30)).toBe("NONE");
-    expect(medalForTotal(10, 10, 20, 30)).toBe("BRONZE");
-    expect(medalForTotal(20, 10, 20, 30)).toBe("SILVER");
-    expect(medalForTotal(30, 10, 20, 30)).toBe("GOLD");
-  });
-});
-
 describe("tierForValue", () => {
-  it("HIGHER_IS_BETTER bate com medalForTotal", () => {
-    for (const v of [0, 10, 20, 30, 35]) {
-      expect(tierForValue(v, 10, 20, 30, "HIGHER_IS_BETTER")).toBe(medalForTotal(v, 10, 20, 30));
-    }
+  it("HIGHER_IS_BETTER (padrão) respeita os limiares bronze/silver/gold", () => {
+    expect(tierForValue(0, 10, 20, 30)).toBe("NONE");
+    expect(tierForValue(10, 10, 20, 30)).toBe("BRONZE");
+    expect(tierForValue(20, 10, 20, 30)).toBe("SILVER");
+    expect(tierForValue(30, 10, 20, 30)).toBe("GOLD");
+    expect(tierForValue(35, 10, 20, 30)).toBe("GOLD");
   });
 
   it("LOWER_IS_BETTER inverte a comparação (gold ≤ current ≤ bronze)", () => {
@@ -108,13 +102,32 @@ describe("tierForValue", () => {
 
 describe("nextTierTarget", () => {
   it("HIGHER_IS_BETTER aponta pro próximo limiar e a diferença", () => {
-    expect(nextTierTarget(5, 10, 20, 30)).toEqual({ target: 10, label: "BRONZE", gap: 5 });
+    expect(nextTierTarget(5, 10, 20, 30)).toEqual({ tier: "BRONZE", target: 10, gap: 5 });
     expect(nextTierTarget(30, 10, 20, 30)).toBeNull();
   });
 
   it("LOWER_IS_BETTER aponta pro próximo limiar na direção inversa", () => {
-    expect(nextTierTarget(25, 30, 20, 10, "LOWER_IS_BETTER")).toEqual({ target: 20, label: "PRATA", gap: 5 });
+    expect(nextTierTarget(25, 30, 20, 10, "LOWER_IS_BETTER")).toEqual({ tier: "SILVER", target: 20, gap: 5 });
     expect(nextTierTarget(10, 30, 20, 10, "LOWER_IS_BETTER")).toBeNull();
+  });
+});
+
+describe("activeDayKeys", () => {
+  it("soma os exercícios do dia: 2 × 20 min no mesmo dia = 1 dia ativo", () => {
+    const day = new Date("2026-06-10T12:00:00Z");
+    expect(activeDayKeys([{ date: day, durationMin: 20 }, { date: day, durationMin: 20 }])).toEqual(["2026-06-10"]);
+  });
+
+  it("2 exercícios ≥30 min no mesmo dia continuam sendo 1 dia ativo", () => {
+    const day = new Date("2026-06-10T12:00:00Z");
+    expect(activeDayKeys([{ date: day, durationMin: 40 }, { date: day, durationMin: 50 }])).toHaveLength(1);
+  });
+});
+
+describe("activeDaysInWeek", () => {
+  it("conta só os dias ativos da semana ISO informada", () => {
+    const keys = ["2026-06-08", "2026-06-10", "2026-06-15"]; // seg, qua da W24 + seg da W25
+    expect(activeDaysInWeek(keys, isoWeekKey(new Date("2026-06-09T12:00:00Z")))).toBe(2);
   });
 });
 
@@ -126,7 +139,7 @@ describe("isoWeekKey", () => {
   });
 });
 
-describe("WEIGHT_POINTS em sincronia com prisma/schema.prisma", () => {
+describe("WEIGHT_POINTS (game-rules) em sincronia com prisma/schema.prisma", () => {
   it("bate com os valores comentados no enum DemandWeight do schema", () => {
     const schema = readFileSync(join(__dirname, "../../prisma/schema.prisma"), "utf-8");
     const enumBlock = schema.match(/enum DemandWeight \{([\s\S]*?)\}/);

@@ -2,28 +2,11 @@ import type { ReviewStatus } from "@prisma/client";
 
 /**
  * Fonte única do mapeamento status → label/cor (serve para Activity e Demand,
- * que compartilham o enum `ReviewStatus`).
- *
- * Cores canônicas: as de `StatusBadge.tsx` (versão anterior), resolvidas a
- * partir das cores `val-gold`/`val-cyan`/`val-red` do `tailwind.config.ts`.
- * As outras duas cópias (`MinhasTable.tsx`, `AllActivitiesHistory.tsx`)
- * usavam hexs soltos que nem batiam entre si (ex: "aprovada" usava
- * `#2DD4BF`, que na verdade é a cor `rpg-teal`, não `val-cyan`).
+ * que compartilham o enum `ReviewStatus`). Exibido pelo componente `StatusBadge`.
+ * Cores = `val-gold` / `val-cyan` / `val-red` do `tailwind.config.ts`.
  */
-export const STATUS_META: Record<ReviewStatus, { label: string; color: string; cls: string }> = {
-  PENDING: {
-    label: "Pendente",
-    color: "#F0C040", // val-gold
-    cls: "bg-val-gold/20 text-val-gold border-val-gold/40",
-  },
-  APPROVED: {
-    label: "Aprovada",
-    color: "#4AB8D4", // val-cyan
-    cls: "bg-val-cyan/20 text-val-cyan border-val-cyan/40",
-  },
-  REJECTED: {
-    label: "Rejeitada",
-    color: "#FF4655", // val-red
-    cls: "bg-val-red/20 text-val-red border-val-red/40",
-  },
+export const STATUS_META: Record<ReviewStatus, { label: string; color: string }> = {
+  PENDING:  { label: "Pendente",  color: "#F0C040" },
+  APPROVED: { label: "Aprovada",  color: "#4AB8D4" },
+  REJECTED: { label: "Rejeitada", color: "#FF4655" },
 };

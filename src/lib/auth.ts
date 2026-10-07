@@ -1,5 +1,6 @@
 import { NextAuthOptions, getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 
@@ -28,9 +29,9 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, trigger, session: newSession }) {
       if (user) {
-        token.id        = (user as any).id;
-        token.role      = (user as any).role;
-        token.avatarUrl = (user as any).avatarUrl ?? null;
+        token.id        = user.id;
+        token.role      = user.role;
+        token.avatarUrl = user.avatarUrl ?? null;
       }
       // Permite atualizar avatarUrl via useSession().update()
       if (trigger === "update" && newSession?.avatarUrl !== undefined) {
@@ -40,13 +41,28 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id        = token.id;
-        (session.user as any).role      = token.role;
-        (session.user as any).avatarUrl = token.avatarUrl ?? null;
+        session.user.id        = token.id;
+        session.user.role      = token.role;
+        session.user.avatarUrl = token.avatarUrl ?? null;
       }
       return session;
     }
   }
 };
 
+/** Sessão atual em Server Components / rotas de API (null se não logado). */
 export const auth = () => getServerSession(authOptions);
+
+/** Para páginas: exige login (senão manda para /login) e devolve a sessão. */
+export async function requireSession() {
+  const session = await auth();
+  if (!session) redirect("/login");
+  return session;
+}
+
+/** Para páginas de admin: exige login + role ADMIN (senão manda para o HUB). */
+export async function requireAdminSession() {
+  const session = await requireSession();
+  if (session.user.role !== "ADMIN") redirect("/");
+  return session;
+}

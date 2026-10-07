@@ -1,26 +1,20 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useCallback, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import { Avatar } from "./Avatar";
 
+/** Foto do usuário no Navbar + menu: trocar/remover foto e sair. */
 export function ProfileMenu() {
   const { data, update } = useSession();
-  const user       = data?.user as any;
+  const user       = data?.user;
   const [open,     setOpen]     = useState(false);
   const [loading,  setLoading]  = useState(false);
-  const menuRef    = useRef<HTMLDivElement>(null);
+  const menuRef    = useClickOutside<HTMLDivElement>(useCallback(() => setOpen(false), []));
   const fileRef    = useRef<HTMLInputElement>(null);
   const { mutate } = useApiMutation();
-
-  // Fecha ao clicar fora
-  useEffect(() => {
-    function handle(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
-  }, []);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -56,9 +50,6 @@ export function ProfileMenu() {
 
   if (!user) return null;
 
-  const initials = (user.name as string)
-    .split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase();
-
   return (
     <div className="relative ml-3 shrink-0" ref={menuRef}>
       {/* Avatar botão */}
@@ -67,44 +58,27 @@ export function ProfileMenu() {
         className="flex items-center gap-2 focus:outline-none"
         title={user.name}
       >
-        <div
-          className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center transition-all"
+        <Avatar
+          name={user.name}
+          url={user.avatarUrl}
+          size={36}
+          initialsColor="#3D7FFF"
+          className="transition-all"
           style={{
-            border: open
-              ? "2px solid rgba(61,127,255,0.9)"
-              : "2px solid rgba(61,127,255,0.35)",
+            border: open ? "2px solid rgba(61,127,255,0.9)" : "2px solid rgba(61,127,255,0.35)",
             boxShadow: open ? "0 0 10px rgba(61,127,255,0.4)" : "none",
-            background: "rgba(13,19,48,0.8)",
           }}
-        >
-          {user.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              alt={user.name}
-              className="w-full h-full object-cover"
-              style={{ objectPosition: "center 15%" }}
-            />
-          ) : (
-            <span style={{
-              fontFamily: "var(--font-display), Impact, sans-serif",
-              fontSize: 13, fontWeight: 700, color: "#3D7FFF",
-              letterSpacing: "0.05em",
-            }}>
-              {initials}
-            </span>
-          )}
-        </div>
+        />
       </button>
 
       {/* Dropdown */}
       {open && (
         <div
-          className="absolute right-0 top-12 z-50 py-2 min-w-[200px]"
+          className="absolute right-0 top-12 z-50 py-2 min-w-[200px] clip-notch-sm"
           style={{
             background: "rgba(8,12,28,0.98)",
             border: "1px solid rgba(61,127,255,0.25)",
             backdropFilter: "blur(16px)",
-            clipPath: "polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)",
           }}
         >
           {/* Linha topo */}

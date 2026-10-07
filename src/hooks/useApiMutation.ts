@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { apiErrorMessage } from "@/lib/error-messages";
 
 type MutationBody = unknown | FormData;
 
@@ -9,6 +10,9 @@ type MutationBody = unknown | FormData;
  * Substitui os `fetch()` crus espalhados pelos componentes, cada um com seu
  * próprio `busy`/loading local — e faz erros pararem de ser silenciados
  * (alguns call sites antigos simplesmente ignoravam `!res.ok`).
+ *
+ * Erros da API viram `Error` com a mensagem já traduzida para o usuário
+ * (ver lib/error-messages.ts).
  *
  * `body` pode ser um objeto qualquer (vira JSON) ou uma instância de
  * `FormData` (enviada como veio, sem `Content-Type` manual — necessário
@@ -30,7 +34,7 @@ export function useApiMutation<TBody extends MutationBody = unknown>() {
         });
         if (!res.ok) {
           const payload = await res.json().catch(() => ({}));
-          throw new Error(payload.error ?? `Erro ${res.status}`);
+          throw new Error(payload.error ? apiErrorMessage(payload.error) : `Erro ${res.status}`);
         }
         setState({ busy: false, error: null });
         return await res.json().catch(() => null);

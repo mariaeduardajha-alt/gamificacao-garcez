@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ActivityActions } from "./ActivityActions";
 import type { ActivityRecordSerialized } from "@/types/domain";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import { STATUS_META } from "@/lib/status";
+import { ACTIVITY_TYPE_LABEL } from "@/lib/game-rules";
+import { formatDate } from "@/lib/format";
 import { Th } from "@/components/table/Table";
+import { StatusBadge } from "./StatusBadge";
+import { ActivityActions } from "./ActivityActions";
+import { TrashIcon } from "./icons";
 
 type Activity = ActivityRecordSerialized;
 
+/** Histórico de atividades do próprio usuário, com seleção e exclusão em lote. */
 export function MinhasTable({ activities }: { activities: Activity[] }) {
   const router   = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -20,11 +24,7 @@ export function MinhasTable({ activities }: { activities: Activity[] }) {
   const someChecked = selected.size > 0 && !allChecked;
 
   function toggleAll() {
-    if (allChecked) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(activities.map((a) => a.id)));
-    }
+    setSelected(allChecked ? new Set() : new Set(activities.map((a) => a.id)));
   }
 
   function toggle(id: string) {
@@ -62,30 +62,18 @@ export function MinhasTable({ activities }: { activities: Activity[] }) {
       {selected.size > 0 && (
         <div
           className="flex items-center justify-between px-4 py-2"
-          style={{
-            background: "rgba(255,70,85,0.07)",
-            borderBottom: "1px solid rgba(255,70,85,0.20)",
-          }}
+          style={{ background: "rgba(255,70,85,0.07)", borderBottom: "1px solid rgba(255,70,85,0.20)" }}
         >
-          <span className="font-mono text-xs uppercase tracking-wider2"
-            style={{ color: "rgba(255,70,85,0.8)" }}>
+          <span className="font-mono text-xs uppercase tracking-wider2" style={{ color: "rgba(255,70,85,0.8)" }}>
             {selected.size} selecionado{selected.size !== 1 ? "s" : ""}
           </span>
           <button
             onClick={deleteSelected}
             disabled={deleting}
             className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider2 px-3 py-1.5 transition-colors"
-            style={{
-              background: "rgba(255,70,85,0.15)",
-              border: "1px solid rgba(255,70,85,0.40)",
-              color: "#FF4655",
-            }}
+            style={{ background: "rgba(255,70,85,0.15)", border: "1px solid rgba(255,70,85,0.40)", color: "#FF4655" }}
           >
-            <svg viewBox="0 0 16 18" width="11" height="13" fill="none"
-              stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M1 4h14M6 4V2h4v2M5 4v10a1 1 0 001 1h4a1 1 0 001-1V4" />
-              <line x1="7" y1="7" x2="7" y2="12" /><line x1="9" y1="7" x2="9" y2="12" />
-            </svg>
+            <TrashIcon size={11} />
             {deleting ? "Excluindo…" : "Excluir selecionados"}
           </button>
         </div>
@@ -97,11 +85,7 @@ export function MinhasTable({ activities }: { activities: Activity[] }) {
           <thead>
             <tr className="border-b border-val-line/30">
               <th className="px-4 py-3 w-10">
-                <Checkbox
-                  checked={allChecked}
-                  indeterminate={someChecked}
-                  onChange={toggleAll}
-                />
+                <Checkbox checked={allChecked} indeterminate={someChecked} onChange={toggleAll} />
               </th>
               <Th>Data</Th>
               <Th>Tipo</Th>
@@ -111,83 +95,57 @@ export function MinhasTable({ activities }: { activities: Activity[] }) {
             </tr>
           </thead>
           <tbody>
-            {activities.map((a) => {
-              const isSelected = selected.has(a.id);
-              const color = STATUS_META[a.status]?.color ?? "#D4DCF0";
-              return (
-                <tr
-                  key={a.id}
-                  className="border-b border-val-line/10 transition-colors"
-                  style={{ background: isSelected ? "rgba(61,127,255,0.06)" : undefined }}
-                >
-                  <td className="px-4 py-3 w-10">
-                    <Checkbox checked={isSelected} onChange={() => toggle(a.id)} />
-                  </td>
-                  <td className="px-4 py-3 font-mono text-sm text-val-cream">
-                    {new Date(a.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}
-                  </td>
-                  <td className="px-4 py-3 font-display uppercase tracking-wider2 text-sm text-val-cream">
-                    {a.type.replace("_", " ")}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-right text-sm text-val-cream">
-                    {a.durationMin ? `${a.durationMin} min` : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className="font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5"
-                      style={{ color, background: `${color}18`, border: `1px solid ${color}40` }}
-                    >
-                      {STATUS_META[a.status]?.label ?? a.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <ActivityActions id={a.id} proofUrl={a.proofUrl} />
-                  </td>
-                </tr>
-              );
-            })}
+            {activities.map((a) => (
+              <tr
+                key={a.id}
+                className="border-b border-val-line/10 transition-colors"
+                style={{ background: selected.has(a.id) ? "rgba(61,127,255,0.06)" : undefined }}
+              >
+                <td className="px-4 py-3 w-10">
+                  <Checkbox checked={selected.has(a.id)} onChange={() => toggle(a.id)} />
+                </td>
+                <td className="px-4 py-3 font-mono text-sm text-val-cream">{formatDate(a.date)}</td>
+                <td className="px-4 py-3 font-display uppercase tracking-wider2 text-sm text-val-cream">
+                  {ACTIVITY_TYPE_LABEL[a.type]}
+                </td>
+                <td className="px-4 py-3 font-mono text-right text-sm text-val-cream">
+                  {a.durationMin ? `${a.durationMin} min` : "—"}
+                </td>
+                <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
+                <td className="px-4 py-3"><ActivityActions id={a.id} proofUrl={a.proofUrl} /></td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
       {/* ── Mobile: lista de cards ── */}
       <div className="md:hidden divide-y divide-val-line/10">
-        {activities.map((a) => {
-          const isSelected = selected.has(a.id);
-          const color = STATUS_META[a.status]?.color ?? "#D4DCF0";
-          return (
-            <div
-              key={a.id}
-              className="flex items-start gap-3 px-4 py-3"
-              style={{ background: isSelected ? "rgba(61,127,255,0.06)" : undefined }}
-            >
-              <div className="pt-0.5 shrink-0">
-                <Checkbox checked={isSelected} onChange={() => toggle(a.id)} />
+        {activities.map((a) => (
+          <div
+            key={a.id}
+            className="flex items-start gap-3 px-4 py-3"
+            style={{ background: selected.has(a.id) ? "rgba(61,127,255,0.06)" : undefined }}
+          >
+            <div className="pt-0.5 shrink-0">
+              <Checkbox checked={selected.has(a.id)} onChange={() => toggle(a.id)} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-display uppercase tracking-wider2 text-sm text-val-cream break-words">
+                  {ACTIVITY_TYPE_LABEL[a.type]}
+                </span>
+                <StatusBadge status={a.status} className="shrink-0" />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="font-display uppercase tracking-wider2 text-sm text-val-cream break-words">
-                    {a.type.replace("_", " ")}
-                  </span>
-                  <span
-                    className="font-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5 shrink-0"
-                    style={{ color, background: `${color}18`, border: `1px solid ${color}40` }}
-                  >
-                    {STATUS_META[a.status]?.label ?? a.status}
-                  </span>
-                </div>
-                <div className="font-mono text-[11px] text-rpg-textDim mt-1">
-                  {new Date(a.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}
-                  {" · "}
-                  {a.durationMin ? `${a.durationMin} min` : "—"}
-                </div>
-                <div className="mt-2">
-                  <ActivityActions id={a.id} proofUrl={a.proofUrl} />
-                </div>
+              <div className="font-mono text-[11px] text-rpg-textDim mt-1">
+                {formatDate(a.date)} · {a.durationMin ? `${a.durationMin} min` : "—"}
+              </div>
+              <div className="mt-2">
+                <ActivityActions id={a.id} proofUrl={a.proofUrl} />
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </>
   );
@@ -215,8 +173,7 @@ function Checkbox({
         </svg>
       )}
       {indeterminate && !checked && (
-        <svg viewBox="0 0 10 2" width="9" height="2" fill="none"
-          stroke="#3D7FFF" strokeWidth="2" strokeLinecap="round">
+        <svg viewBox="0 0 10 2" width="9" height="2" fill="none" stroke="#3D7FFF" strokeWidth="2" strokeLinecap="round">
           <path d="M1 1h8" />
         </svg>
       )}

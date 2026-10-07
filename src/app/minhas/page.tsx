@@ -1,15 +1,14 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { activeDayKeys } from "@/lib/scoring";
 import { Navbar } from "@/components/Navbar";
 import { MinhasTable } from "@/components/MinhasTable";
 
 export const dynamic = "force-dynamic";
 
 export default async function MinhasPage() {
-  const session = await auth();
-  if (!session) redirect("/login");
+  const session = await requireSession();
 
   const activities = await prisma.activity.findMany({
     where: { userId: session.user.id },
@@ -17,9 +16,7 @@ export default async function MinhasPage() {
   });
 
   const approved   = activities.filter((a) => a.status === "APPROVED");
-  const activeDays = new Set(
-    approved.filter((a) => (a.durationMin ?? 0) >= 30).map((a) => a.date.toISOString().slice(0, 10))
-  ).size;
+  const activeDays = activeDayKeys(approved).length;
 
   return (
     <>
