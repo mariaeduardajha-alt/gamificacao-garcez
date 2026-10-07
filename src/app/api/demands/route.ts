@@ -52,14 +52,3 @@ export const POST = withApiHandler(async (req: NextRequest) => {
 
   return apiSuccess({ ok: true, id: demand.id });
 });
-
-export const GET = withApiHandler(async () => {
-  const authResult = await requireAuth();
-  if (!authResult.ok) return authResult.response;
-
-  const items = await prisma.demand.findMany({
-    where: { userId: authResult.session.user.id },
-    orderBy: { completedAt: "desc" },
-  });
-  return apiSuccess({ items });
-});

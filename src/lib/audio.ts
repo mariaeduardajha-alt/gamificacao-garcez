@@ -24,7 +24,7 @@ function createCtx(): AudioContext | null {
 }
 
 /** Retorna o AudioContext compartilhado, tentando retomá-lo se estiver suspenso. */
-export function getAudioCtx(): AudioContext | null {
+function getAudioCtx(): AudioContext | null {
   const c = createCtx();
   if (c && c.state === "suspended") c.resume().catch(() => {});
   return c;

@@ -1,2 +1,4 @@
 # Scripts executados dentro do container Linux precisam de quebra de linha LF
 *.sh text eol=lf
+# O Prisma confere o checksum das migrações: CRLF faria a migração parecer alterada
+*.sql text eol=lf

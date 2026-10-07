@@ -104,7 +104,7 @@ export function rankWithTies(players: RankCriteria[]): number[] {
   return ranks;
 }
 
-// ========== DEMANDAS (ClickUp) ==========
+// ========== DEMANDAS (registro manual; peso → pontos) ==========
 export const WEIGHT_POINTS: Record<DemandWeight, number> = {
   SMALL: 5,
   MEDIUM: 15,

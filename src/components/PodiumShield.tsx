@@ -46,18 +46,6 @@ const TIER = {
 const OUTER = "M100,8 L30,30 L12,56 L12,148 C12,202 52,240 100,260 C148,240 188,202 188,148 L188,56 L170,30 Z";
 // Inner border path (inset ~10px)
 const INNER = "M100,20 L38,40 L23,64 L23,148 C23,197 58,231 100,249 C142,231 177,197 177,148 L177,64 L162,40 Z";
-// Clip path id for content (same as inner)
-const CLIP_ID = "shield-content-clip";
-
-// Crown SVG path (small crown at top)
-function CrownPath({ color, cx = 100, cy = 8 }: { color: string; cx?: number; cy?: number }) {
-  return (
-    <g transform={`translate(${cx - 14},${cy - 9})`}>
-      <polygon points="0,10 4,2 8,8 14,0 20,8 24,2 28,10" fill={color} opacity="0.9" />
-      <rect x="0" y="10" width="28" height="4" rx="1" fill={color} opacity="0.8" />
-    </g>
-  );
-}
 
 // Corner ornament (top-left)
 function CornerOrnament({ color, x, y, flip }: { color: string; x: number; y: number; flip?: boolean }) {
@@ -77,16 +65,10 @@ export function PodiumShield({
   player,
   position,
   maxPoints,
-  bronze = 8,
-  silver = 12,
-  gold = 16,
 }: {
   player: PlayerStats | undefined;
   position: 1 | 2 | 3;
   maxPoints: number;
-  bronze?: number;
-  silver?: number;
-  gold?: number;
 }) {
   const t = TIER[position];
   const isFirst = position === 1;
@@ -159,11 +141,6 @@ export function PodiumShield({
               <stop offset="0%"   stopColor={t.c1} />
               <stop offset="100%" stopColor={t.c3} />
             </linearGradient>
-
-            {/* Clip path para conteúdo */}
-            <clipPath id={`${uid}-clip`}>
-              <path d={INNER} />
-            </clipPath>
           </defs>
 
           {/* ── Fundo do escudo ── */}

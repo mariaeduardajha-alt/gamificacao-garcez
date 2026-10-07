@@ -175,22 +175,22 @@ export default async function HomePage() {
             {/* ── Desktop: pódio horizontal 2-1-3 ── */}
             <div className="hidden md:flex items-end justify-center gap-4 pb-2">
               {/* 2° lugar */}
-              <PodiumShield player={rank[1]} position={2} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+              <PodiumShield player={rank[1]} position={2} maxPoints={maxPts} />
 
               {/* 1° lugar — centralizado e mais alto */}
               <div style={{ marginBottom: 20 }}>
-                <PodiumShield player={rank[0]} position={1} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+                <PodiumShield player={rank[0]} position={1} maxPoints={maxPts} />
               </div>
 
               {/* 3° lugar */}
-              <PodiumShield player={rank[2]} position={3} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+              <PodiumShield player={rank[2]} position={3} maxPoints={maxPts} />
             </div>
 
             {/* ── Mobile: pódio vertical 1-2-3 empilhado ── */}
             <div className="flex md:hidden flex-col items-center gap-1 pb-2 w-full">
-              <PodiumShield player={rank[0]} position={1} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
-              <PodiumShield player={rank[1]} position={2} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
-              <PodiumShield player={rank[2]} position={3} maxPoints={maxPts} bronze={indBronze} silver={indSilver} gold={indGold} />
+              <PodiumShield player={rank[0]} position={1} maxPoints={maxPts} />
+              <PodiumShield player={rank[1]} position={2} maxPoints={maxPts} />
+              <PodiumShield player={rank[2]} position={3} maxPoints={maxPts} />
             </div>
 
             {/* Esferas 3D no chão — estética de jogo */}

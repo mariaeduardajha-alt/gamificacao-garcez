@@ -67,24 +67,3 @@ export const POST = withApiHandler(async (req: NextRequest) => {
 
   return apiSuccess({ ok: true, id: activity.id, dayPointsGained, bonusGained });
 });
-
-export const GET = withApiHandler(async () => {
-  const authResult = await requireAuth();
-  if (!authResult.ok) return authResult.response;
-
-  const items = await prisma.activity.findMany({
-    where: { userId: authResult.session.user.id },
-    orderBy: { date: "desc" },
-  });
-  return apiSuccess({ items });
-});
-
-export const DELETE = withApiHandler(async () => {
-  const authResult = await requireAuth();
-  if (!authResult.ok) return authResult.response;
-
-  const { count } = await prisma.activity.deleteMany({
-    where: { userId: authResult.session.user.id },
-  });
-  return apiSuccess({ ok: true, deleted: count });
-});

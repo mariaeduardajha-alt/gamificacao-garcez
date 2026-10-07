@@ -32,14 +32,3 @@ export const POST = withApiHandler(async (req: NextRequest) => {
 
   return apiSuccess({ ok: true, id: user.id });
 });
-
-export const GET = withApiHandler(async () => {
-  const authResult = await requireAdmin();
-  if (!authResult.ok) return authResult.response;
-
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: "asc" },
-    select: { id: true, name: true, email: true, sector: true, role: true, createdAt: true },
-  });
-  return apiSuccess({ users });
-});

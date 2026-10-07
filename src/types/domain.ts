@@ -1,15 +1,5 @@
 import type { Prisma, Activity, Demand } from "@prisma/client";
 
-/* ── Tipos "cheios" — o formato que sai direto do Prisma no server ── */
-
-export type ActivityWithUser = Prisma.ActivityGetPayload<{
-  include: { user: { select: { name: true; email: true } } };
-}>;
-
-export type DemandWithUser = Prisma.DemandGetPayload<{
-  include: { user: { select: { name: true; email: true } } };
-}>;
-
 /** Resumo de usuário para a tela de gestão (`/admin/usuarios`). */
 export type UserSummary = Prisma.UserGetPayload<{
   select: { id: true; name: true; email: true; sector: true; role: true; createdAt: true };

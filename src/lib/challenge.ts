@@ -53,7 +53,6 @@ export interface ChallengeSnapshot {
   totalCollectivePoints: number;      // base (dias×10) + bônus de constância
   collectiveMedal: MedalTier;
   collectiveNext: { target: number; label: string } | null;
-  collectiveProgressPct: number;
 
   // ── RANKING INDIVIDUAL (período completo) ──
   rankActiveDays: PlayerStats[];
@@ -112,10 +111,6 @@ export async function buildSnapshot(): Promise<ChallengeSnapshot> {
     challenge.silverActiveDays,
     challenge.goldActiveDays
   );
-  const collectiveProgressPct = Math.min(
-    100,
-    (totalCollectiveActiveDays / challenge.goldActiveDays) * 100
-  );
   const collectiveNext =
     totalCollectiveActiveDays < challenge.bronzeActiveDays
       ? { target: challenge.bronzeActiveDays, label: "BRONZE" }
@@ -160,7 +155,6 @@ export async function buildSnapshot(): Promise<ChallengeSnapshot> {
     totalCollectivePoints,
     collectiveMedal,
     collectiveNext,
-    collectiveProgressPct,
     rankActiveDays,
     sectorGoals,
     players,

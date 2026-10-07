@@ -19,13 +19,11 @@ const colors: Record<MedalTier, Tier> = {
 export function Shield({
   tier,
   size = 96,
-  showLabel = true,
-  animated = false
+  showLabel = true
 }: {
   tier: MedalTier;
   size?: number;
   showLabel?: boolean;
-  animated?: boolean;
 }) {
   const c = colors[tier];
   const gid = `grad-${tier}-${size}`;
@@ -34,7 +32,7 @@ export function Shield({
   return (
     <div className="flex flex-col items-center gap-2">
       <div
-        className={`relative ${animated ? "animate-pulse-red" : ""}`}
+        className="relative"
         style={{
           filter: tier !== "NONE" ? `drop-shadow(0 0 24px ${c.glow})` : "none",
           width: size,
