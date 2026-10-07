@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { saveUpload, isAllowedImage } from "@/lib/storage";
+import { saveUpload, isAllowedImage, MAX_PROOF_SIZE_BYTES } from "@/lib/storage";
 import { computeActiveDaysStats } from "@/lib/scoring";
 import { POINTS_PER_ACTIVE_DAY, CONSTANCY_BONUS_POINTS } from "@/lib/game-rules";
 import { getActiveChallenge } from "@/lib/challenge";
@@ -8,7 +8,6 @@ import { dateFromInput } from "@/lib/format";
 import { requireAuth } from "@/lib/api-auth";
 import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 import { createActivitySchema } from "@/lib/schemas";
-import { MAX_PROOF_SIZE_BYTES } from "@/lib/constants";
 
 export const runtime = "nodejs";
 

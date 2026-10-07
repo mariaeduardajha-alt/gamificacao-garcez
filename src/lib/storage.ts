@@ -10,6 +10,12 @@ import { randomBytes } from "crypto";
 const UPLOADS_DIR = resolve(process.env.UPLOADS_DIR || join(process.cwd(), "uploads"));
 const PUBLIC_PATH = "/uploads";
 
+/** Tamanho máximo do print de atividade/demanda. */
+export const MAX_PROOF_SIZE_BYTES = 8 * 1024 * 1024; // 8MB
+
+/** Tamanho máximo da foto de perfil. */
+export const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+
 /** Extensões aceitas → content-type servido. */
 export const IMAGE_MIME: Record<string, string> = {
   jpg: "image/jpeg",

@@ -1,9 +1,8 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { saveUpload, isAllowedImage } from "@/lib/storage";
+import { saveUpload, isAllowedImage, MAX_AVATAR_SIZE_BYTES } from "@/lib/storage";
 import { requireAuth } from "@/lib/api-auth";
 import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
-import { MAX_AVATAR_SIZE_BYTES } from "@/lib/constants";
 
 export const runtime = "nodejs";
 

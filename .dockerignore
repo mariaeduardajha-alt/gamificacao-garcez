@@ -1,0 +1,12 @@
+# Não entram na imagem Docker: dependências/builds locais, segredos e dados de runtime
+node_modules
+.next
+.env
+.env.*
+!.env.example
+uploads
+tests/screenshots
+*.tsbuildinfo
+.git
+.claude
+docs

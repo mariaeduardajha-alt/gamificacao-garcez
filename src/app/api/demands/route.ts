@@ -1,12 +1,11 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { saveUpload, isAllowedImage } from "@/lib/storage";
+import { saveUpload, isAllowedImage, MAX_PROOF_SIZE_BYTES } from "@/lib/storage";
 import { WEIGHT_POINTS } from "@/lib/game-rules";
 import { dateFromInput } from "@/lib/format";
 import { requireAuth } from "@/lib/api-auth";
 import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 import { createDemandSchema } from "@/lib/schemas";
-import { MAX_PROOF_SIZE_BYTES } from "@/lib/constants";
 
 export const runtime = "nodejs";
 

@@ -1,134 +1,35 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Manual operacional do Claude Code neste repositório: como rodar, credenciais, problemas comuns e regras inegociáveis.
+Para **o que é o projeto e onde fica cada coisa**, veja o [`README.md`](./README.md). Para **arquitetura, regras do jogo e padrões de código**, veja [`docs/`](./docs/).
 
 ---
 
-Este projeto é o **Movimento em Jogo** — plataforma de gamificação da equipe Garcez Consultoria (Next.js + Postgres + NextAuth + Tailwind, identidade visual estilo Valorant).
-
-> Para padrões de código, arquitetura e convenções do time, veja [`docs/standards/00-indice.md`](./docs/standards/00-indice.md).
+Este projeto é o **Movimento em Jogo** — plataforma de gamificação da equipe Garcez Consultoria (Next.js 15 + Prisma/PostgreSQL + NextAuth + Tailwind, visual estilo Valorant).
 
 ## Missão do Claude neste repositório
 
-Quando o usuário pedir para **"iniciar"**, **"rodar"**, **"subir"**, **"começar"** ou **"abrir o projeto"**, **você (Claude) é responsável por fazer TUDO sozinho, sem pedir ao usuário para rodar comandos**. Isso inclui:
-
-- Verificar Node.js e PostgreSQL
-- Instalar dependências npm
-- Rodar as migrations (`prisma db push`)
-- Rodar o seed (`npm run db:seed`)
-- Subir o servidor de dev
-- Fazer health-check e relatar a URL e credenciais
+Quando o usuário pedir para **"iniciar"**, **"rodar"**, **"subir"**, **"começar"** ou **"abrir o projeto"**, **você (Claude) faz TUDO sozinho, sem pedir ao usuário para rodar comandos**: verificar Node.js e PostgreSQL, instalar dependências, aplicar migrações, rodar o seed, subir o servidor, fazer health-check e relatar URL e credenciais.
 
 O usuário final é **leigo técnico**. Ele só quer ver o site funcionando no navegador. Nunca diga "rode tal comando" — execute você mesmo.
 
-> **Ambiente:** Windows 10 + PowerShell. Use PowerShell para tudo — nunca `brew`, `nohup`, ou caminhos `/tmp/`.
+> **Ambiente:** Windows + PowerShell. Use PowerShell para tudo — nunca `brew`, `nohup` ou caminhos `/tmp/`.
+
+## Antes de escrever código
+
+Leia [`docs/03-padroes-de-codigo.md`](./docs/03-padroes-de-codigo.md). Em resumo: cada assunto tem **uma fonte única** (regras em `src/lib/game-rules.ts`, cálculo em `src/lib/scoring.ts`, cores de escudo em `src/lib/tiers.ts`, datas em `src/lib/format.ts`...). Reaproveite; nunca copie lógica ou constante para outro arquivo.
 
 ---
-
-## Stack
-
-- **Next.js 15** (App Router) + TypeScript
-- **Prisma** + **PostgreSQL** local
-- **NextAuth v4** (credentials, sessão JWT)
-- **Tailwind** (tema Valorant: `src/app/globals.css`, `tailwind.config.ts`)
-- **Recharts** para gauges/gráficos
-- **Upload local** em `./uploads/` via `src/lib/storage.ts` (rota protegida `/uploads/[...path]`)
-- **Playwright** para testes E2E em `tests/e2e.mjs`
-
-## Rotas principais
-
-| Rota | Quem acessa | Função |
-|---|---|---|
-| `/login` | público | Auth |
-| `/` | qualquer logado | HUB: meta coletiva + pódio + ranking geral |
-| `/registrar` | qualquer logado | Form atividade física + upload do print |
-| `/minhas` | qualquer logado | Histórico de atividades |
-| `/demandas` | qualquer logado | Histórico de demandas de trabalho |
-| `/demandas/nova` | qualquer logado | Form de nova demanda |
-| `/meta-dos-setores` | qualquer logado | Metas por área (SectorGoal) |
-| `/admin` | ADMIN | Fila de validação (atividades + demandas) + engajamento |
-| `/admin/usuarios` | ADMIN | CRUD de agentes |
 
 ## Credenciais e acesso
 
 - **URL local:** `http://gamificacaogarcezconsultoria.local:3000`
 - **PostgreSQL:** `postgresql://postgres:postgres@localhost:5432/movimento_em_jogo`
 - **Senha padrão dos usuários:** `movimento2026`
-- **Admin:** `garcez@garcez` (Maria Eduarda — **sem** `.com`, confirmado contra `prisma/seed.ts`)
+- **Admin:** `garcez@garcez` (Maria Eduarda — **sem** `.com`)
 - **Outros usuários do seed:** `luizhenriquegarcez@gmail.com` (Luiz Garcez), `douglas@luizgarcez.com.br` (Douglas), `cleiton@luizgarcez.com.br` (Cleiton), `kellyadrsz1@gmail.com` (Kelly), `milenna@luizgarcez.com.br` (Milenna) — todos `role: USER`
 
 > O `.env` já está configurado e nunca deve ser recriado do zero — `NEXTAUTH_SECRET` não pode mudar (quebra sessões existentes).
-
----
-
-## Arquitetura central
-
-### Fluxo de dados no HUB (`/`)
-
-```
-src/app/page.tsx  →  buildSnapshot()  →  Prisma (users + activities + demands)
-                                      →  computePlayerStats()  (por usuário)
-                                      →  compareRank()         (ordenação)
-                                      →  rankWithTies()        (colocação com empates)
-```
-
-`buildSnapshot()` em `src/lib/challenge.ts` é a **função central do sistema**. Ela busca todos os dados do banco de uma vez e devolve o `ChallengeSnapshot` usado por todas as seções do HUB e da página de setores.
-
-### Sistema de pontuação (`src/lib/scoring.ts`)
-
-**Regra de dias ativos:**
-- 1 dia ativo = ≥30 min totais de atividade aprovada no mesmo dia
-- 1 dia ativo = **10 pontos**
-- 1 semana qualificante (≥3 dias ativos) = **+20 pontos de bônus de constância**
-
-**Fórmula:** `rankingPoints = activeDays × 10 + weeksHitGoal × 20`
-
-**Desempate oficial (em ordem de prioridade):**
-1. `rankingPoints` — pontuação total
-2. `activeDays` — dias ativos reais
-3. `weeksHitGoal` — semanas com meta atingida
-4. `totalMinutes` — tempo total de atividades
-
-**Meta coletiva vs. pontuação coletiva:** o bônus de constância soma pontos mas **não conta como dia ativo** na meta coletiva (48/72/96 dias). Os campos `totalCollectiveActiveDays` e `totalCollectivePoints` são calculados separadamente no `ChallengeSnapshot`.
-
-### Modelos Prisma
-
-| Modelo | Função |
-|---|---|
-| `User` | Agentes com `role` (USER/ADMIN), `sector`, `avatarUrl` |
-| `Activity` | Atividade física: `kcal`, `durationMin`, `status`. Dias ativos = `durationMin ≥ 30` por dia. |
-| `Demand` | Demanda de trabalho com `weight` (SMALL/MEDIUM/LARGE/EPIC → 5/15/30/50 pts). Registrada manualmente com print. Sem integração com ClickUp (planejada). |
-| `Challenge` | Configuração do período ativo. `getActiveChallenge()` auto-cria se não existir (datas hardcoded jun–jul 2026). |
-| `SectorGoal` | Meta por área: `current`, `bronze`/`silver`/`gold`, `direction` (HIGHER_IS_BETTER ou LOWER_IS_BETTER). **UI de admin para criação/edição ainda não existe — precisa ser criada.** |
-
-### Módulos `src/lib/`
-
-| Arquivo | Função |
-|---|---|
-| `auth.ts` | Configuração NextAuth + helper `auth()` para Server Components |
-| `challenge.ts` | `buildSnapshot()` + `getActiveChallenge()` |
-| `scoring.ts` | `computePlayerStats()`, `computeActiveDaysStats()`, `compareRank()`, `rankWithTies()` |
-| `storage.ts` | `saveProof()` — grava uploads em `UPLOADS_DIR` e devolve URL pública `/uploads/...` |
-| `audio.ts` | Contexto Web Audio API compartilhado (destravado no primeiro gesto do usuário) |
-| `prisma.ts` | Singleton do PrismaClient |
-
-### Auth e middleware
-
-`src/middleware.ts` usa `withAuth` do NextAuth. Todas as rotas exceto `/login`, `/api/auth`, `/uploads` e assets estáticos exigem sessão. Role ADMIN é verificada nas próprias páginas/rotas de API via `session.user.role`.
-
----
-
-## Comandos úteis
-
-```bash
-npm run dev          # dev server
-npm run build        # prisma generate + next build
-npm run lint         # ESLint
-npm run db:push      # sincroniza schema com o banco (prisma db push)
-npm run db:seed      # popula o banco (idempotente)
-npm run db:studio    # Prisma Studio na porta 5555
-node tests/e2e.mjs   # testes E2E com Playwright (requer dev server rodando)
-```
 
 ---
 
@@ -142,7 +43,7 @@ Execute passo a passo via PowerShell, em ordem:
 node --version
 ```
 
-Se falhar: instale pelo site nodejs.org ou com `winget install OpenJS.NodeJS.LTS`.
+Se falhar: `winget install OpenJS.NodeJS.LTS`.
 
 ### 2. Verificar PostgreSQL
 
@@ -150,22 +51,19 @@ Se falhar: instale pelo site nodejs.org ou com `winget install OpenJS.NodeJS.LTS
 psql --version
 ```
 
-Se falhar: instale pelo site postgresql.org. Usuário padrão: `postgres`, senha: `postgres`. Confirme que o serviço está rodando (`services.msc` → procure por "postgresql").
+Se falhar: instale pelo site postgresql.org. Usuário `postgres`, senha `postgres`. Confirme que o serviço está rodando (`services.msc` → "postgresql").
 
 ### 3. Garantir o banco `movimento_em_jogo`
 
 ```powershell
 psql -h localhost -U postgres -c "CREATE DATABASE movimento_em_jogo;" 2>$null
-psql -h localhost -U postgres -c "SELECT datname FROM pg_database WHERE datname='movimento_em_jogo';"
 ```
 
 Se pedir senha, é `postgres`.
 
 ### 4. Verificar o `.env`
 
-O arquivo `.env` já existe e está configurado. **Não recrie nem altere o `NEXTAUTH_SECRET`.**
-
-Se por algum motivo não existir, crie com exatamente este conteúdo:
+O arquivo `.env` já existe. **Não recrie nem altere o `NEXTAUTH_SECRET`.** Se não existir, crie com:
 
 ```
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/movimento_em_jogo"
@@ -175,31 +73,25 @@ UPLOADS_DIR="./uploads"
 SEED_PASSWORD="movimento2026"
 ```
 
-### 5. Instalar dependências
+### 5. Instalar dependências, aplicar migrações e seed
 
 ```powershell
 npm install
-```
-
-### 6. Sincronizar schema + seed
-
-```powershell
-npx prisma generate
-npx prisma db push --skip-generate
+npm run db:deploy
 npm run db:seed
 ```
 
-### 7. Subir o servidor
+### 6. Subir o servidor
 
-O usuário pode usar o arquivo `iniciar-servidor.bat` (duplo clique) ou:
+O usuário pode usar o `iniciar-servidor.bat` (duplo clique) ou:
 
 ```powershell
 npm run dev
 ```
 
-O servidor sobe na porta 3000. Se a porta estiver ocupada, o Next usa 3001/3003.
+Porta 3000. Se estiver ocupada (ex.: outro projeto rodando), use outra porta e sobrescreva a URL: `$env:NEXTAUTH_URL="http://localhost:3005"; npx next dev -p 3005`.
 
-### 8. Health-check
+### 7. Health-check
 
 ```powershell
 Invoke-WebRequest -Uri "http://gamificacaogarcezconsultoria.local:3000/login" -UseBasicParsing | Select-Object StatusCode
@@ -207,66 +99,49 @@ Invoke-WebRequest -Uri "http://gamificacaogarcezconsultoria.local:3000/login" -U
 
 StatusCode 200 → ok.
 
-> **Se o domínio não resolver:** o arquivo `hosts` do Windows (`C:\Windows\System32\drivers\etc\hosts`) precisa ter a linha `127.0.0.1 gamificacaogarcezconsultoria.local`. Se não tiver, adicione (requer administrador).
+> **Se o domínio não resolver:** o arquivo `C:\Windows\System32\drivers\etc\hosts` precisa ter `127.0.0.1 gamificacaogarcezconsultoria.local` (requer administrador).
 
-### 9. Reportar ao usuário
+### 8. Reportar ao usuário
 
-Avise que o site está aberto em `http://gamificacaogarcezconsultoria.local:3000` e passe o login padrão (`garcez@garcez` / `movimento2026`).
+Avise que o site está aberto na URL e passe o login padrão (`garcez@garcez` / `movimento2026`).
 
 ---
 
 ## Troubleshooting que o Claude deve resolver sozinho
 
-- **Erro de Prisma após mudar `schema.prisma`:**
-  → `npx prisma generate` + deletar pasta `.next` + reiniciar dev.
-
-- **Login falha com "Invalid credentials":**
-  → Confirme que `NEXTAUTH_URL` no `.env` bate com a URL/porta real. Ajuste e reinicie.
-
-- **Domínio não resolve no navegador:**
-  → Verificar e adicionar `127.0.0.1 gamificacaogarcezconsultoria.local` no arquivo `hosts` do Windows.
-
-- **Porta 3000 ocupada:**
-  → Deixe o Next escolher outra porta. Atualize `NEXTAUTH_URL` no `.env` e reinicie.
-
-- **Upload retorna 500:**
-  → Confirmar que `./uploads/` existe e tem permissão de escrita.
-
-- **DB vazio / sem usuários:**
-  → `npm run db:seed` (é idempotente).
-
-- **Mudou schema Prisma:**
-  → Sempre: `npx prisma db push --skip-generate && npx prisma generate` + deletar `.next` + reiniciar.
-
-- **Servidor caiu:**
-  → Verificar erros no terminal onde `npm run dev` estava rodando. Corrigir e reiniciar.
+- **`db:deploy` falha com P3005 ("database schema is not empty"):** banco criado antes da adoção de migrações. Registre a migração inicial como já aplicada e repita: `npx prisma migrate resolve --applied 0_init` → `npm run db:deploy`.
+- **Mudou o `schema.prisma`:** `npm run db:migrate -- --name descricao_da_mudanca` (gera e aplica a migração), depois apague `.next` e reinicie. Leia antes [`docs/04-banco-de-dados.md`](./docs/04-banco-de-dados.md): mudar tipo de coluna exige migração escrita à mão.
+- **Erro "Nenhum desafio ativo no banco":** `npm run db:seed`.
+- **Login falha com "Credenciais inválidas":** confira se `NEXTAUTH_URL` bate com a URL/porta real. Ajuste e reinicie.
+- **Upload retorna erro:** confirme que `./uploads/` existe e tem permissão de escrita. Só imagens (JPG, PNG, WEBP, GIF, HEIC) são aceitas.
+- **DB vazio / sem usuários:** `npm run db:seed` (idempotente: só cria o que falta).
+- **Erro de tipos com `.next/types` após apagar uma rota:** apague a pasta `.next`.
 
 ---
 
-## Testes E2E
+## Testes
 
-```bash
-node tests/e2e.mjs
+```powershell
+npm test                 # unitários (Vitest) — regras de pontuação
+node tests/e2e.mjs       # ponta a ponta (Playwright); servidor rodando; $env:BASE_URL se não for :3000
 ```
 
-Requer o dev server rodando. Cobre: login admin/user, HUB, criar agente, registrar atividade + demanda, aprovação admin, bloqueio de rotas. Screenshots em `tests/screenshots/`.
+O teste ponta a ponta cria um agente de teste e o remove ao final. Screenshots em `tests/screenshots/` (fora do git).
 
 ---
 
 ## O que NUNCA fazer
 
-- Nunca peça ao usuário para rodar `npm install`, `prisma ...`, `psql ...`, etc. — **execute você mesmo**.
+- Nunca peça ao usuário para rodar `npm install`, `prisma ...`, `psql ...` — **execute você mesmo**.
 - Não suba em produção sem a pessoa pedir.
 - Não apague o banco sem confirmação.
 - Não commite `.env`.
 - Não altere `NEXTAUTH_SECRET` (quebra sessões existentes).
-- Não use comandos macOS (`brew`, `nohup`, `which`, `/tmp/`) — o ambiente é Windows.
+- Não use `prisma db push` — o projeto usa migrações versionadas (`db:migrate` / `db:deploy`).
+- Não use comandos macOS (`brew`, `nohup`, `/tmp/`) — o ambiente é Windows.
 
 ---
 
-## Deploy em Coolify (quando chegar a hora)
+## Deploy em Coolify
 
-- Usar o `Dockerfile` já existente na raiz do projeto.
-- Variáveis que o Coolify precisa setar: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `UPLOADS_DIR=/data/uploads`.
-- Montar volume persistente em `/data/uploads` (os prints ficam aí).
-- O `CMD` do Dockerfile já aplica o schema via SQL puro, roda o seed e sobe o servidor.
+Ver [`docs/05-deploy-e-seguranca.md`](./docs/05-deploy-e-seguranca.md). Resumo: o `Dockerfile` da raiz gera a imagem; o `docker-entrypoint.sh` aplica as migrações pendentes, roda o seed e sobe o servidor. Variáveis: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `UPLOADS_DIR=/data/uploads` (volume persistente).

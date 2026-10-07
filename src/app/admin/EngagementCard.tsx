@@ -94,7 +94,7 @@ export function EngagementCard({ players }: { players: PlayerEngagement[] }) {
               <tr key={p.userId} className="border-b border-val-line/10 hover:bg-val-bgDark/40">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <PlayerAvatar player={p} size={28} />
+                    <AgentAvatar player={p} size={28} />
                     <span className="font-display uppercase tracking-wider2 text-xs text-val-cream">{firstName(p.name)}</span>
                   </div>
                 </td>
@@ -114,7 +114,7 @@ export function EngagementCard({ players }: { players: PlayerEngagement[] }) {
         <div className="md:hidden divide-y divide-val-line/10">
           {players.map((p) => (
             <div key={p.userId} className="px-4 py-3 flex items-center gap-3">
-              <PlayerAvatar player={p} size={36} />
+              <AgentAvatar player={p} size={36} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-display uppercase tracking-wider2 text-sm text-val-cream truncate">{firstName(p.name)}</span>
@@ -165,7 +165,7 @@ export function EngagementCard({ players }: { players: PlayerEngagement[] }) {
   );
 }
 
-function PlayerAvatar({ player, size }: { player: PlayerEngagement; size: number }) {
+function AgentAvatar({ player, size }: { player: PlayerEngagement; size: number }) {
   return (
     <Avatar name={player.name} url={player.avatarUrl} size={size} initialsColor="#3D7FFF"
       style={{ border: "1px solid rgba(61,127,255,0.25)" }} />

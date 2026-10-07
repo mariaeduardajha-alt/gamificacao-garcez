@@ -15,3 +15,6 @@ next-env.d.ts
 
 # Screenshots gerados por node tests/e2e.mjs — artefato de execução local
 tests/screenshots/
+
+# Permissões locais do Claude Code (pessoais de cada máquina)
+.claude/settings.local.json
