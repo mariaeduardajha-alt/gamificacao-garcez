@@ -1,9 +1,8 @@
-import type { ActivityStatus } from "@prisma/client";
+import type { ReviewStatus } from "@prisma/client";
 
 /**
- * Fonte única do mapeamento status → label/cor.
- * `DemandStatus` no schema tem os mesmos 3 valores (PENDING/APPROVED/REJECTED)
- * de `ActivityStatus`, então este mapa serve pros dois.
+ * Fonte única do mapeamento status → label/cor (serve para Activity e Demand,
+ * que compartilham o enum `ReviewStatus`).
  *
  * Cores canônicas: as de `StatusBadge.tsx` (versão anterior), resolvidas a
  * partir das cores `val-gold`/`val-cyan`/`val-red` do `tailwind.config.ts`.
@@ -11,7 +10,7 @@ import type { ActivityStatus } from "@prisma/client";
  * usavam hexs soltos que nem batiam entre si (ex: "aprovada" usava
  * `#2DD4BF`, que na verdade é a cor `rpg-teal`, não `val-cyan`).
  */
-export const STATUS_META: Record<ActivityStatus, { label: string; color: string; cls: string }> = {
+export const STATUS_META: Record<ReviewStatus, { label: string; color: string; cls: string }> = {
   PENDING: {
     label: "Pendente",
     color: "#F0C040", // val-gold

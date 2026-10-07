@@ -123,9 +123,8 @@ async function main() {
     }
 
     // -------- 6. REGISTRAR ATIVIDADE FÍSICA --------
-    // Não existe mais campo kcal (modelo atual é dias ativos/duração), e o
-    // envio não navega mais pra /minhas — mostra mensagem inline e reseta o
-    // form. Atividades são criadas já como "Aprovada" (sem revisão de admin).
+    // O envio mostra mensagem inline e reseta o form (não navega).
+    // Atividades são criadas já como "Aprovada" (sem revisão de admin).
     try {
       await page.goto(`${BASE}/registrar`);
       await page.waitForSelector('input[name="durationMin"]');

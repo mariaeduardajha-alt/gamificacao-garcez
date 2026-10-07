@@ -12,13 +12,8 @@ enum Role {
   ADMIN
 }
 
-enum ActivityStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum DemandStatus {
+// Status de revisão — usado por Activity e Demand
+enum ReviewStatus {
   PENDING
   APPROVED
   REJECTED
@@ -64,15 +59,12 @@ model Activity {
   user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   date        DateTime
   type        ActivityType
-  kcal        Int
   durationMin Int?
   notes       String?
   proofUrl    String?
-  status      ActivityStatus @default(PENDING)
-  reviewedBy  String?
-  reviewedAt  DateTime?
-  reviewNote  String?
-  createdAt   DateTime       @default(now())
+  // Exercícios são aprovados automaticamente ao serem registrados
+  status      ReviewStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
 
   @@index([userId, date])
   @@index([status])
@@ -89,7 +81,7 @@ model Demand {
   completedAt DateTime
   proofUrl    String?
   notes       String?
-  status      DemandStatus @default(PENDING)
+  status      ReviewStatus @default(PENDING)
   reviewedBy  String?
   reviewedAt  DateTime?
   reviewNote  String?
@@ -104,12 +96,6 @@ model Challenge {
   name             String
   startDate        DateTime
   endDate          DateTime
-  bronzeKcal       Int      @default(24000)
-  silverKcal       Int      @default(30000)
-  goldKcal         Int      @default(34000)
-  bronzePoints     Int      @default(300)
-  silverPoints     Int      @default(600)
-  goldPoints       Int      @default(900)
   bronzeActiveDays Int      @default(48)
   silverActiveDays Int      @default(72)
   goldActiveDays   Int      @default(96)

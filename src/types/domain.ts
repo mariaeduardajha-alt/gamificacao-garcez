@@ -10,10 +10,9 @@ export type UserSummary = Prisma.UserGetPayload<{
    antes de passar os dados como prop pra um Client Component, o que
    converte `Date` em `string`. Esses tipos refletem esse formato real. */
 
-export type ActivityRecordSerialized = Omit<Activity, "date" | "createdAt" | "reviewedAt"> & {
+export type ActivityRecordSerialized = Omit<Activity, "date" | "createdAt"> & {
   date: string;
   createdAt: string;
-  reviewedAt: string | null;
 };
 
 export type ActivityWithUserSerialized = ActivityRecordSerialized & {

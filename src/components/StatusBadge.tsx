@@ -1,7 +1,7 @@
-import type { ActivityStatus } from "@prisma/client";
+import type { ReviewStatus } from "@prisma/client";
 import { STATUS_META } from "@/lib/status";
 
-export function StatusBadge({ status }: { status: ActivityStatus }) {
+export function StatusBadge({ status }: { status: ReviewStatus }) {
   const s = STATUS_META[status];
   return (
     <span

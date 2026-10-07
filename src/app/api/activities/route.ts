@@ -38,7 +38,6 @@ export const POST = withApiHandler(async (req: NextRequest) => {
       userId: session.user.id,
       date: new Date(dateStr + "T12:00:00Z"),
       type,
-      kcal: 0,
       durationMin,
       notes: notes ?? null,
       proofUrl,

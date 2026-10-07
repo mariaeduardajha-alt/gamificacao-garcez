@@ -1,7 +1,6 @@
 /**
- * Campos comuns às decisões de revisão (aprovar/rejeitar) de Activity e Demand.
- * Não força um tipo genérico entre os dois modelos Prisma (schemas diferentes) —
- * cada rota faz o merge com seus próprios campos específicos (ex: kcal, weight/points).
+ * Campos gravados quando o admin aprova/rejeita uma demanda
+ * (a rota acrescenta os campos específicos, como weight/points).
  *
  * Nota: `note || null` (e não `note ?? null`) para preservar o comportamento original,
  * onde uma nota em branco ("") também vira `null`.
