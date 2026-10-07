@@ -20,7 +20,8 @@ async function main() {
     await prisma.user.upsert({
       where:  { email: m.email },
       create: { email: m.email, name: m.name, role: m.role, passwordHash: hash, avatarUrl: m.avatarUrl },
-      update: { name: m.name, role: m.role, ...(m.avatarUrl ? { avatarUrl: m.avatarUrl } : {}) }
+      // Só cria: nome, cargo e foto podem ter sido alterados depois pelo admin ou pelo próprio usuário
+      update: {}
     });
   }
 
