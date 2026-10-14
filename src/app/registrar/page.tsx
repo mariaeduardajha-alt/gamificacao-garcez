@@ -1,7 +1,6 @@
 import { requireSession } from "@/lib/auth";
 import { getActiveChallenge } from "@/lib/challenge";
 import { toInputValue } from "@/lib/format";
-import { Navbar } from "@/components/Navbar";
 import { ActivityForm } from "./ActivityForm";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +11,6 @@ export default async function RegistrarPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-10">
         <div className="mb-6 sm:mb-8">
           <h1 className="val-heading text-2xl sm:text-3xl">Registrar atividade</h1>

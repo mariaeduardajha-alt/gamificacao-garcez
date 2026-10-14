@@ -6,8 +6,11 @@ import { useApiMutation } from "@/hooks/useApiMutation";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { Avatar } from "./Avatar";
 
-/** Foto do usuário no Navbar + menu: trocar/remover foto e sair. */
-export function ProfileMenu() {
+/**
+ * Foto do usuário no menu + opções: trocar/remover foto e sair.
+ * `placement="up"` abre para cima (rodapé do menu lateral).
+ */
+export function ProfileMenu({ placement = "down" }: { placement?: "down" | "up" }) {
   const { data, update } = useSession();
   const user       = data?.user;
   const [open,     setOpen]     = useState(false);
@@ -51,7 +54,7 @@ export function ProfileMenu() {
   if (!user) return null;
 
   return (
-    <div className="relative ml-3 shrink-0" ref={menuRef}>
+    <div className="relative shrink-0" ref={menuRef}>
       {/* Avatar botão */}
       <button
         onClick={() => setOpen((v) => !v)}
@@ -62,11 +65,11 @@ export function ProfileMenu() {
           name={user.name}
           url={user.avatarUrl}
           size={36}
-          initialsColor="#3D7FFF"
+          initialsColor="rgb(var(--brand-title))"
           className="transition-all"
           style={{
-            border: open ? "2px solid rgba(61,127,255,0.9)" : "2px solid rgba(61,127,255,0.35)",
-            boxShadow: open ? "0 0 10px rgba(61,127,255,0.4)" : "none",
+            border: open ? "2px solid rgb(var(--brand-title))" : "2px solid rgb(var(--brand-line))",
+            boxShadow: open ? "0 0 0 3px rgb(var(--brand-title) / 0.12)" : "none",
           }}
         />
       </button>
@@ -74,29 +77,24 @@ export function ProfileMenu() {
       {/* Dropdown */}
       {open && (
         <div
-          className="absolute right-0 top-12 z-50 py-2 min-w-[200px] clip-notch-sm"
+          className={`absolute z-50 py-2 min-w-[200px] rounded-md ${placement === "up" ? "left-0 bottom-12" : "right-0 top-12"}`}
           style={{
-            background: "rgba(8,12,28,0.98)",
-            border: "1px solid rgba(61,127,255,0.25)",
-            backdropFilter: "blur(16px)",
+            background: "rgb(var(--brand-surface))",
+            border: "1px solid rgb(var(--brand-line))",
+            boxShadow: "0 10px 30px rgba(40,30,5,0.35)",
           }}
         >
-          {/* Linha topo */}
-          <div style={{ position:"absolute",top:0,left:0,right:0,height:2,
-            background:"linear-gradient(90deg,transparent,rgba(61,127,255,0.7),transparent)" }} />
-
           {/* Info do usuário */}
-          <div className="px-4 py-3 border-b" style={{ borderColor: "rgba(61,127,255,0.12)" }}>
-            <div className="font-display uppercase tracking-wider2 text-val-cream text-xs">
+          <div className="px-4 py-3 border-b" style={{ borderColor: "rgb(var(--brand-line) / 0.5)" }}>
+            <div className="font-serif font-semibold text-base text-brand-title">
               {user.name}
             </div>
-            <div className="font-mono text-[10px] text-rpg-textDim mt-0.5">{user.email}</div>
+            <div className="font-brand text-[11px] text-brand-ink mt-0.5">{user.email}</div>
           </div>
 
           {/* Editar foto */}
           <div className="px-2 pt-2 pb-1">
-            <div className="font-mono text-[9px] uppercase tracking-wider2 px-2 mb-1"
-              style={{ color: "rgba(212,220,240,0.35)" }}>
+            <div className="font-brand text-[10px] uppercase tracking-[0.12em] px-2 mb-1 text-brand-ink">
               Foto de perfil
             </div>
 
@@ -104,11 +102,11 @@ export function ProfileMenu() {
             <button
               onClick={() => fileRef.current?.click()}
               disabled={loading}
-              className="flex items-center gap-2 w-full px-2 py-2 rounded hover:bg-white/5 transition-colors font-mono text-xs uppercase tracking-wider2 text-val-cream"
+              className="flex items-center gap-2 w-full px-2 py-2 rounded hover:bg-brand-title/5 transition-colors font-brand text-sm text-brand-title"
             >
               <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
                 strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-                style={{ color: "#3D7FFF" }}>
+                style={{ color: "rgb(var(--brand-title))" }}>
                 <circle cx="8" cy="8" r="3" />
                 <path d="M6 2H4a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-2" />
                 <path d="M10 1l2 2-5 5H5V6l5-5z" />
@@ -121,8 +119,8 @@ export function ProfileMenu() {
               <button
                 onClick={handleRemove}
                 disabled={loading}
-                className="flex items-center gap-2 w-full px-2 py-2 rounded hover:bg-red-500/10 transition-colors font-mono text-xs uppercase tracking-wider2"
-                style={{ color: "rgba(255,70,85,0.75)" }}
+                className="flex items-center gap-2 w-full px-2 py-2 rounded hover:bg-red-800/10 transition-colors font-brand text-sm"
+                style={{ color: "#8B2E1E" }}
               >
                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
                   strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -135,14 +133,14 @@ export function ProfileMenu() {
           </div>
 
           {/* Divider */}
-          <div className="mx-3 my-1" style={{ height:1, background:"rgba(61,127,255,0.12)" }} />
+          <div className="mx-3 my-1" style={{ height:1, background:"rgb(var(--brand-line) / 0.5)" }} />
 
           {/* Sair */}
           <div className="px-2 pb-2">
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="flex items-center gap-2 w-full px-2 py-2 rounded hover:bg-red-500/10 transition-colors font-mono text-xs uppercase tracking-wider2"
-              style={{ color: "rgba(255,70,85,0.75)" }}
+              className="flex items-center gap-2 w-full px-2 py-2 rounded hover:bg-red-800/10 transition-colors font-brand text-sm"
+              style={{ color: "#8B2E1E" }}
             >
               <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
                 strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

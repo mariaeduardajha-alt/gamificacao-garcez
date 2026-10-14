@@ -15,7 +15,7 @@ export function RankRow({
 }: { player: PlayerStats; position: number; maxPoints: number; goal: IndividualGoal }) {
   const medal = tierForValue(player.activeDays, goal.bronze, goal.silver, goal.gold);
   const pct = Math.min(100, (player.rankingPoints / maxPoints) * 100);
-  const isTop3 = position <= 3;
+  const isTop3 = position >= 1 && position <= 3;
   const color = isTop3 ? TIER_COLOR[PODIUM_TIER[position as 1 | 2 | 3]] : DEFAULT_COLOR;
 
   return (

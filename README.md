@@ -60,7 +60,7 @@ Pré-requisitos: Node ≥ 20, PostgreSQL e um `.env` (modelo em `.env.example`).
     │   ├── admin/                /admin (validação de demandas, histórico, engajamento) e /admin/usuarios
     │   ├── uploads/[...path]/    serve os prints enviados (só para logados)
     │   └── api/                  rotas de API (activities, demands, users, profile, auth)
-    ├── components/           componentes visuais reutilizáveis (escudos, ranking, avatar, navbar...)
+    ├── components/           componentes visuais reutilizáveis (escudos, ranking, avatar, menu lateral...)
     ├── hooks/                hooks React (envio para a API, clique fora)
     ├── lib/                  REGRAS E SERVIÇOS — ver tabela abaixo
     └── types/                tipos compartilhados

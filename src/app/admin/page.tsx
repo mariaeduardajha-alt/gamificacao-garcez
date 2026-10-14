@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { buildSnapshot } from "@/lib/challenge";
 import { isoWeekKey, activeDaysInWeek } from "@/lib/scoring";
 import { WEEKLY_GOAL_DAYS } from "@/lib/game-rules";
-import { Navbar } from "@/components/Navbar";
 import { DemandsReviewList } from "./DemandsReviewList";
 import { AllActivitiesHistory } from "./AllActivitiesHistory";
 import { EngagementCard, type PlayerEngagement } from "./EngagementCard";
@@ -52,7 +51,6 @@ export default async function AdminPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-10 space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
           <div>

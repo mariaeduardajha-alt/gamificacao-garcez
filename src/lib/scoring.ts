@@ -88,14 +88,22 @@ export function compareRank(a: RankCriteria, b: RankCriteria): number {
  * a colocação avança (estilo 1-2-3-4-5).
  *
  * NÃO usa nome, ID, ordem alfabética ou ordem de cadastro como desempate.
+ * Quem ainda não pontuou fica na colocação 0 (UNRANKED): o 1° já é posição
+ * de pódio e só vale para quem tem pontos.
  * Recebe a lista JÁ ordenada por compareRank e devolve as colocações por índice.
  */
+export const UNRANKED = 0;
+
 export function rankWithTies(players: RankCriteria[]): number[] {
   const ranks: number[] = [];
   let currentRank = 1;
   let previous: RankCriteria | null = null;
 
   players.forEach((p, idx) => {
+    if (p.rankingPoints <= 0) {
+      ranks.push(UNRANKED);
+      return;
+    }
     // Só mantém a colocação se for empate TOTAL em todos os critérios
     if (previous === null || compareRank(previous, p) !== 0) {
       currentRank = idx + 1;

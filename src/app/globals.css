@@ -8,6 +8,15 @@
 :root {
   --val-cream: #D4DCF0;
   --val-bg:    #06091A;
+
+  /* Paleta institucional (Pessoas e Cultura) — combinação "Contraste elegante",
+     FONTE ÚNICA. Canais RGB para funcionar com opacidade no Tailwind
+     (ex.: bg-brand-surface/40) e em estilos inline: rgb(var(--brand-title)). */
+  --brand-bg:      195 176 147;   /* #C3B093 fundo e menu lateral (Areia Dourada) */
+  --brand-surface: 222 212 196;   /* #DED4C4 cartões e item ativo do menu */
+  --brand-line:    168 149 122;   /* #A8957A bordas finas e filetes */
+  --brand-title:    18  29  40;   /* #121D28 títulos, subtítulos, menu e logo */
+  --brand-ink:      47  65  89;   /* #2F4159 corpo de texto (Azul Aço) */
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -16,11 +25,20 @@ html, body {
   max-width: 100%;
   overflow-x: hidden;
   min-height: 100%;
-  color: var(--val-cream);
-  background: var(--val-bg);
 }
 
+/* Site institucional (Pessoas e Cultura): Areia Dourada com títulos em azul-marinho */
 body {
+  min-height: 100vh;
+  color: rgb(var(--brand-title));
+  background-color: rgb(var(--brand-bg));
+}
+
+/* Área de gamificação (Jogos e Meta dos Setores): estética de jogo escura */
+.game-area {
+  min-height: 100vh;
+  color: var(--val-cream);
+  background-color: var(--val-bg);
   background-image:
     radial-gradient(ellipse at 15% 0%,  rgba(124, 77,255,0.14), transparent 55%),
     radial-gradient(ellipse at 85% 5%,  rgba( 61,127,255,0.10), transparent 50%),
@@ -91,11 +109,25 @@ body {
     @apply block font-display uppercase tracking-wider2 text-xs text-rpg-textDim mb-2;
   }
 
-  /* Scrollbar */
+  /* Institucional (Pessoas e Cultura) — fora da área de jogos */
+  .brand-input {
+    @apply w-full bg-white/45 border border-brand-line rounded-sm text-brand-title px-4 py-3 font-brand text-sm
+           placeholder:text-brand-ink/50 focus:outline-none focus:border-brand-title focus:bg-white/70 transition-colors;
+  }
+  .brand-label {
+    @apply block font-brand uppercase tracking-[0.14em] text-[11px] font-bold text-brand-ink mb-2;
+  }
+  .brand-btn {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-sm font-brand font-bold uppercase tracking-[0.16em] text-xs
+           bg-brand-title text-brand-surface transition-colors duration-150
+           hover:bg-brand-ink disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Scrollbar (neutra: serve para as duas identidades) */
   ::-webkit-scrollbar        { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track  { background: var(--val-bg); }
-  ::-webkit-scrollbar-thumb  { background: rgba(61,127,255,0.4); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(124,77,255,0.6); }
+  ::-webkit-scrollbar-track  { background: transparent; }
+  ::-webkit-scrollbar-thumb  { background: rgba(140,111,58,0.35); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(140,111,58,0.6); }
 }
 
 /* Card com padding menor no mobile para não cortar lateralmente */

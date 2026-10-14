@@ -2,7 +2,6 @@ import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { activeDayKeys } from "@/lib/scoring";
-import { Navbar } from "@/components/Navbar";
 import { MinhasTable } from "@/components/MinhasTable";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +19,6 @@ export default async function MinhasPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-10 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
           <div>

@@ -48,14 +48,15 @@ async function login(page, user) {
 
 async function logout(page) {
   await page.goto(`${BASE}/`);
-  // O botão "Sair" mora dentro do dropdown do ProfileMenu (avatar no Navbar) — precisa abrir antes.
+  // O botão "Sair" mora dentro do dropdown do ProfileMenu (avatar no menu lateral) — precisa abrir antes.
   await page.locator('button[title]:visible').first().click();
   await page.click('button:has-text("Sair")');
   await page.waitForURL(/\/login/);
 }
 
 async function main() {
-  const browser = await chromium.launch({ headless: true });
+  // PW_CHANNEL=chrome usa o Chrome instalado no lugar do navegador baixado pelo Playwright
+  const browser = await chromium.launch({ headless: true, channel: process.env.PW_CHANNEL });
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
 
@@ -71,7 +72,9 @@ async function main() {
     }
 
     // -------- 2. HUB CARREGA ELEMENTOS --------
+    // Após o login cai na página da marca; o ranking fica em Jogos > Movimento em Jogo
     try {
+      await page.goto(`${BASE}/movimento-em-jogo`);
       const heading = await page.textContent("h1");
       const hasMeta = await page.getByText(/Meta Coletiva/).count();
       const hasRank = await page.getByText(/Ranking Geral/).count();
@@ -211,7 +214,7 @@ async function main() {
 
     // -------- 10. HUB REFLETE APROVAÇÕES --------
     try {
-      await page.goto(`${BASE}/`);
+      await page.goto(`${BASE}/movimento-em-jogo`);
       await page.waitForSelector("h1");
       const bodyText = await page.textContent("body");
       const hasDiasAtivos = /dias ativos/i.test(bodyText || "");

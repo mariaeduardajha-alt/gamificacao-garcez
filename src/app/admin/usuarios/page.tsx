@@ -1,6 +1,5 @@
 import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Navbar } from "@/components/Navbar";
 import { UsersManager } from "./UsersManager";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +14,6 @@ export default async function UsuariosPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-5xl px-6 py-10 space-y-6">
         <div>
           <h1 className="val-heading text-3xl">Gestão de Agentes</h1>

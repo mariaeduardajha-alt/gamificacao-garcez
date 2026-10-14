@@ -17,6 +17,8 @@
 Ordem oficial (`compareRank`): **1) pontos → 2) dias ativos → 3) semanas na meta → 4) minutos totais.**
 Duas pessoas só dividem a colocação se empatarem em **todos** os critérios (padrão 1-2-2-4). Nome, ordem de cadastro etc. nunca desempatam.
 
+Quem ainda não pontuou fica na colocação **0°** e fora do pódio: o 1° já é posição de pódio e só vale para quem tem pontos.
+
 ## Escudos (bronze / prata / ouro)
 
 | Escudo | Onde | Limiares |

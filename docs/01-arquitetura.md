@@ -36,7 +36,7 @@ Busca de uma vez o desafio ativo, todos os usuários com suas atividades aprovad
 - `sectorGoals` — metas dos setores com escudo atual e próximo;
 - `daysLeft` / `daysTotal`.
 
-É usado pelo HUB (`/`), por `/meta-dos-setores` e pelo painel `/admin`. Nenhuma tela recalcula pontuação por conta própria.
+É usado pelo HUB (`/movimento-em-jogo`), por `/meta-dos-setores` e pelo painel `/admin`. Nenhuma tela recalcula pontuação por conta própria.
 
 ## Exemplo de fluxo: registrar um exercício
 
@@ -55,7 +55,9 @@ Busca de uma vez o desafio ativo, todos os usuários com suas atividades aprovad
 | Rota | Acesso | Função |
 |---|---|---|
 | `/login` | público | Entrada |
-| `/` | logado | HUB: meta coletiva, pódio, classificação completa |
+| `/` | logado | Entrada de Pessoas e Cultura: logo da Garcez |
+| `/campanhas` · `/resgatando-os-bons-valores` · `/mural-dos-sonhos` | logado | Seções institucionais (em construção) |
+| `/movimento-em-jogo` | logado | HUB: meta coletiva, pódio, classificação completa |
 | `/registrar` | logado | Registrar exercício (aprovado automaticamente) |
 | `/minhas` | logado | Histórico de exercícios, exclusão individual/em lote |
 | `/demandas` · `/demandas/nova` | logado | Histórico e registro de demandas (aguardam aprovação) |
@@ -86,4 +88,8 @@ Respostas: sucesso `{ ok: true, ... }`; erro `{ error: "<código>" }` com status
 
 ## Visual
 
-Tema "tático/Valorant" em `tailwind.config.ts` (cores `val-*`, `rpg-*`) e `src/app/globals.css` (classes `val-card`, `val-btn*`, `val-input`, `val-label`, `val-heading`, recortes `clip-notch*`, `text-gradient`, animações). Fontes: Tomorrow (títulos), Rajdhani (texto), JetBrains Mono. Cores dos escudos sempre via `lib/tiers.ts`.
+O site tem duas identidades. A navegação é o menu lateral `components/Sidebar.tsx`, aplicado a todas as páginas logadas por `components/AppShell.tsx`.
+
+**Institucional (Pessoas e Cultura)** — padrão do site, combinação "Contraste elegante" aprovada pelo web designer: fundo Areia Dourada `#C3B093`, títulos `#121D28`, corpo de texto `#2F4159`. As cores ficam **só** nas variáveis `--brand-*` de `globals.css` (lidas pelas classes `brand-*` do Tailwind). Classes `brand-input`, `brand-label`, `brand-btn`, a moldura `BrandFrame` e o logo `garcez-logo-escuro.png`. Ícones do menu: traço fino, viewBox 24 (`NavIcon` em `Sidebar.tsx`). Fontes: Cormorant Garamond (títulos, `font-serif`) e Lato (texto, `font-brand`).
+
+**Gamificação (Jogos e Meta dos Setores)** — as rotas listadas em `lib/sections.ts` (`GAME_ROUTES`) recebem a classe `game-area`, com fundo escuro e fontes de jogo. Tema "tático/Valorant" em `tailwind.config.ts` (cores `val-*`, `rpg-*`) e `src/app/globals.css` (classes `val-card`, `val-btn*`, `val-input`, `val-label`, `val-heading`, recortes `clip-notch*`, `text-gradient`, animações). Fontes: Tomorrow (títulos), Rajdhani (texto), JetBrains Mono. Cores dos escudos sempre via `lib/tiers.ts`.

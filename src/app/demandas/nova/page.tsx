@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { DemandWeight } from "@prisma/client";
-import { Navbar } from "@/components/Navbar";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { DEMAND_WEIGHTS, WEIGHT_POINTS, WEIGHT_COLOR, WEIGHT_LABEL } from "@/lib/game-rules";
 import { todayInputValue } from "@/lib/format";
@@ -29,7 +28,6 @@ export default function NovaDemandaPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-3xl px-6 py-10">
         <div className="mb-8">
           <h1 className="val-heading text-3xl">Registrar demanda</h1>

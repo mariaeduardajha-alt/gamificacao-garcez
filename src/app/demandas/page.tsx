@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Navbar } from "@/components/Navbar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { WEIGHT_COLOR, WEIGHT_LABEL } from "@/lib/game-rules";
 import { formatDate } from "@/lib/format";
@@ -22,7 +21,6 @@ export default async function DemandasPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-5xl px-6 py-10 space-y-6">
         <div className="flex items-end justify-between">
           <div>

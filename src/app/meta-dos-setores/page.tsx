@@ -2,7 +2,6 @@ import { requireSession } from "@/lib/auth";
 import { buildSnapshot } from "@/lib/challenge";
 import { TIER_COLOR } from "@/lib/tiers";
 import { formatMonthRange } from "@/lib/format";
-import { Navbar } from "@/components/Navbar";
 import { SectionHeader } from "@/components/SectionHeader";
 import { SectorGoalCard } from "@/components/SectorGoalCard";
 
@@ -15,7 +14,6 @@ export default async function MetaDoSetoresPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-7xl px-4 py-8 space-y-10">
 
         {/* Header */}

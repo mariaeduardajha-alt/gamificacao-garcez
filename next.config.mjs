@@ -2,6 +2,8 @@
 const nextConfig = {
   output: "standalone",
   reactStrictMode: true,
+  // Indicador de desenvolvimento fora do rodapé do menu lateral
+  devIndicators: { position: "bottom-right" },
   allowedDevOrigins: ["gamificacaogarcezconsultoria.local", "192.168.10.103"],
   images: {
     remotePatterns: [

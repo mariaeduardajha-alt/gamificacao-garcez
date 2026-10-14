@@ -51,6 +51,14 @@ describe("rankWithTies", () => {
     const players = [mk(100), mk(80), mk(60)];
     expect(rankWithTies(players)).toEqual([1, 2, 3]);
   });
+
+  it("quem não pontuou fica na colocação 0, fora do pódio", () => {
+    const mk = (rankingPoints: number): RankCriteria => ({
+      rankingPoints, activeDays: 0, weeksHitGoal: 0, totalMinutes: 0,
+    });
+    expect(rankWithTies([mk(0), mk(0), mk(0)])).toEqual([0, 0, 0]);
+    expect(rankWithTies([mk(50), mk(0), mk(0)])).toEqual([1, 0, 0]);
+  });
 });
 
 describe("computeActiveDaysStats", () => {
